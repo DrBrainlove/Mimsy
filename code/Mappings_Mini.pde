@@ -14,6 +14,10 @@ public static final Dodecahedron dd = new Dodecahedron(RADIUS);
 
 
 
+
+
+
+
 //***************************************************** MAPPING CONFIGURATIONS
 /**
  * Generates the model from indiviual bars, and assigns them to channels.
@@ -23,7 +27,7 @@ public static final Dodecahedron dd = new Dodecahedron(RADIUS);
 
 static class MimsyMap {
 
-  String MimsyType = "ArtCar";
+  String MimsyType = "MiniMim";
 
   int channelCount = 0;
   int pixelsDD;
@@ -50,19 +54,22 @@ static class MimsyMap {
       pixelsTL = 158;
       pixelsTR = 171;
     }
-    out("MIMSY MAP: %s\n", MimsyType);
-
   }
 
   /**
    * Build the Mimsy Model
    **/
   public GraphModel buildModel() {
+    
+    return buildModelMiniMim();
+  
+    /*
     if (MimsyType == "MiniMim") {
-      return buildModelMiniMim();
-    } else {
+    } else if (MimsyType == "ArtCar") {
       return buildModelArtCar();
     }
+    */
+
   }
 
   /**
@@ -70,10 +77,9 @@ static class MimsyMap {
    **/
   public void buildChannelMap(GraphModel model) {
     if (MimsyType == "MiniMim") {
-      buildMapMiniMim();
-    } else {
-      buildMapArtCar();
+      buildMapMiniMim(model);
     }
+
     channelMap = pixelMap;
   }
 
@@ -129,7 +135,7 @@ static class MimsyMap {
 
 
   /** 
-   * Build MiniMim Model
+   * Build Mimsy Art Car
    **/
 
   public GraphModel buildModelMiniMim() {
@@ -171,7 +177,7 @@ static class MimsyMap {
 
     // Build Graphs
     if (DRAW_DODECAHEDRON) {
-      out("BUILDING DODECAHEDRON (%d LEDs/Bar)\n", pixelsDD);
+      out("BUILDING DODECAHEDRON (25 LEDs/Bar)\n");
       PIXELS_PER_BAR = pixelsDD;
       dodecahedron = GraphModel.fromNodes(nodes, barsDD)
                    . setLayer("Dodecahedron");
@@ -179,7 +185,7 @@ static class MimsyMap {
     }
 
     if (DRAW_TETRA_LEFT) {
-      out("BUILDING COMPOUND TETRAHEDRA LEFT (INNER %d LEDs/Bar)\n", pixelsTL);
+      out("BUILDING COMPOUND TETRAHEDRA LEFT (INNER 50 LEDs/Bar)\n");
       PIXELS_PER_BAR = pixelsTL;
       tetraLCompound = buildCompound(
           nodes, 
@@ -189,7 +195,7 @@ static class MimsyMap {
     }
 
     if (DRAW_TETRA_RIGHT) {
-      out("BUILDING COMPOUND TETRAHEDRA RIGHT (OUTER %d LEDs/Bar)\n", pixelsTR);
+      out("BUILDING COMPOUND TETRAHEDRA RIGHT (OUTER 54 LEDs/Bar)\n");
       PIXELS_PER_BAR = pixelsTR;
       tetraRCompound = buildCompound(
           nodes, 
@@ -202,86 +208,6 @@ static class MimsyMap {
       new GraphModel[]{dodecahedron, tetraLCompound, tetraRCompound})
       .setLayer("Mimsy");
   }
-
-  /** 
-   * Build Mimsy Art Car Model
-   **/
-
-  public GraphModel buildModelArtCar() {
-  
-    // create the dodecahedral bar mapping
-    for (int c = 0; c < 5; c++) { 
-      int[][] bars = new int[][] {
-        {  0 + c,        0 + (c+1)%5 },
-        {  0 + (c+1)%5,  5 + (c+1)%5 },
-        {  5 + (c+1)%5, 10 + c       },
-        {  5 + (c%5),   10 + c       },
-        { 10 + c,       15 + c       },
-        { 15 + c,       15 + (c+1)%5 }
-      };
-
-      for (int b = 0; b < 6; b++) {
-        barsDD[c*6 + b] = bars[b];
-      }
-    }
-
-
-    int[][] TETRAHEDRON_BAR_ORDER = 
-      new int[][] {
-        {0,3},{3,1},
-        {0,2},{2,3},
-        {0,1},{1,2},
-      };
-
-
-    Node[] nodes = new Node[dd.NODES];
-
-    GraphModel dodecahedron = new GraphModel().setLayer(DD);
-    GraphModel tetraLCompound = new GraphModel().setLayer(TL);
-    GraphModel tetraRCompound = new GraphModel().setLayer(TR);
-
-    // Build Nodes
-    for (int n = 0; n < dd.NODES; n++) {
-      nodes[n] = new Node(dd.xyz[n]).setName(dd.nodeNames[n]);
-      //System.out.format("+ Node %2d - %8.2f %8.2f %8.2f\n",
-      //  nodes[n].index, nodes[n].x, nodes[n].y, nodes[n].z);
-    }
-
-
-    // Build Graphs
-    if (DRAW_DODECAHEDRON) {
-      out("BUILDING DODECAHEDRON (%d LEDs/Bar)\n", pixelsDD);
-      PIXELS_PER_BAR = pixelsDD;
-      dodecahedron = GraphModel.fromNodes(nodes, barsDD)
-                   . setLayer("Dodecahedron");
-      //faces = buildCompound(nodes, dd.faceNet, DODECAHEDRON_BAR_ORDER);
-    }
-
-    if (DRAW_TETRA_LEFT) {
-      out("BUILDING COMPOUND TETRAHEDRA LEFT (INNER %d LEDs/Bar)\n", pixelsTL);
-      PIXELS_PER_BAR = pixelsTL;
-      tetraLCompound = buildCompound(
-          nodes, 
-          dd.tetraLNet, 
-          TETRAHEDRON_BAR_ORDER,
-          TL);
-    }
-
-    if (DRAW_TETRA_RIGHT) {
-      out("BUILDING COMPOUND TETRAHEDRA RIGHT (OUTER %d LEDs/Bar)\n", pixelsTR);
-      PIXELS_PER_BAR = pixelsTR;
-      tetraRCompound = buildCompound(
-          nodes, 
-          dd.tetraRNet, 
-          TETRAHEDRON_BAR_ORDER,
-          TR);
-    }
-
-    return new GraphModel(nodes, 
-      new GraphModel[]{dodecahedron, tetraLCompound, tetraRCompound})
-      .setLayer("Mimsy");
-  }
-
 
 
 
@@ -289,7 +215,7 @@ static class MimsyMap {
   /**
    * MiniMim mapping is one channel from each layer for each A-level node
    **/
-  public void buildMapMiniMim() {
+  public void buildMapMiniMim(GraphModel model) {
     GraphModel dodeca = model.getLayer(DD);
     GraphModel tetraL = model.getLayer(TL);
     GraphModel tetraR = model.getLayer(TR);
@@ -321,53 +247,28 @@ static class MimsyMap {
     GraphModel tetraR = model.getLayer(TR);
 
     Bar[] bars = new Bar[3];
-
     
     for (int i = 0; i < 5; i++) {
     
       //***** dodecahedral bars
-      bars = new Bar[3];
       // bottom 3 bars
-      out("Dodeca %d lower (%d bars)", i, dodeca.bars.length);
       for (int b = 0; b < 3; b++) {
         bars[b] = dodeca.bars[i*6+b];
       }
       addChannel(bars);
 
       // top 3 bars
-      out("Dodeca %d upper", i);
       for (int b = 0; b < 3; b++) {
-        bars[b] = dodeca.bars[i*6+b+3];
+        bars[b] = dodeca.bars[i*6+b];
       }
       addChannel(bars);
 
       // third channel is skipped on each receiver
       addChannel(BLANK_CHANNEL);
+  
 
 
-      //***** tetrahedral right
-      bars[0] = tetraR.bars[i*6+0];
-      bars[1] = tetraR.bars[i*6+1];
-      addChannel(bars);
-      bars[0] = tetraR.bars[i*6+2];
-      bars[1] = tetraR.bars[i*6+3];
-      addChannel(bars);
-      bars[0] = tetraR.bars[i*6+4];
-      bars[1] = tetraR.bars[i*6+5];
-      addChannel(bars);
-
-      //***** tetrahedral left
-      bars = new Bar[2];
-      bars[0] = tetraL.bars[i*6+0];
-      bars[1] = tetraL.bars[i*6+1];
-      addChannel(bars);
-      bars[0] = tetraL.bars[i*6+2];
-      bars[1] = tetraL.bars[i*6+3];
-      addChannel(bars);
-      bars[0] = tetraL.bars[i*6+4];
-      bars[1] = tetraL.bars[i*6+5];
-      addChannel(bars);
-
+     /* TODO: Add Tetrahedral Layers */ 
     }
   }
 

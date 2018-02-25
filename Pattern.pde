@@ -336,43 +336,162 @@ public class BlankPattern extends LXPattern {
  ************************************************************************** */
 public class CircleBounce extends LXPattern {
 
-  private final BoundedParameter bounceSpeed
-      = new BoundedParameter("BNC",  1000, 0, 10000);
-  private final BoundedParameter colorSpread
-      = new BoundedParameter("CLR", 0.0, 0.0, 360.0);
+  private final int MAX_CIRCLES = 10;
+  private final float EXTENSION = 0.0;
+
+  private final BoundedParameter circles
+      = new BoundedParameter("Circles", 1.0, 1.0, (float)MAX_CIRCLES);
+  private final BoundedParameter extension
+      = new BoundedParameter("Extend", 1.0, 0.0, 2.0);
+  private final BoundedParameter rotateSpeed
+      = new BoundedParameter("Spin", 1.0, 0.0, 10.0);
+  private final BoundedParameter bounceSpeed 
+      = new BoundedParameter("Bounce",  10000, 0, 100000);
+  private final BoundedParameter colorSpread 
+      = new BoundedParameter("Color", 5.0, 0.0, 360.0);
+  private final BoundedParameter circleWidth
+      = new BoundedParameter("Width", 1, 0.0, 10.0);
   private final BoundedParameter colorFade
-      = new BoundedParameter("FADE", 1, 0.0, 10.0);
+      = new BoundedParameter("Fade", 0.1, 0.0, 1.0);
+
 
   public CircleBounce(LX lx) {
     super(lx);
+    addParameter(circles);
+    addParameter(extension);
+    addParameter(rotateSpeed);
     addParameter(bounceSpeed);
+    addParameter(circleWidth);
     addParameter(colorSpread);
     addParameter(colorFade);
-    addLayer(new CircleLayer(lx));
+    for (int i = 0; i < MAX_CIRCLES; i++) {
+      addLayer(new CircleLayer(lx, i));
+    }
   }
 
-  public void run(double deltaMs) {}
+  public void run(double deltaMs) {
+    //fade(colorFade.getValuef());
+    float fade = 1.0 - (float)Math.log10(colorFade.getValuef());
+    //float fade = 1.0 - (float)Math.pow(colorFade.getValuef(), 4.0);
+    for (LXPoint p : model.points) {
+      //colors[p.index] = LXColor.BLACK;
+      colors[p.index] = LXColor.scaleBrightness(colors[p.index], colorFade.getValuef());
+      float b = LXColor.b(colors[p.index]);
+      if (b < 10.0) { 
+        colors[p.index] = LXColor.BLACK;
+      }
+    }
+  }
 
   public class CircleLayer extends LXLayer {
-    private final SinLFO xPeriod = new SinLFO(model.zMin, model.zMax, bounceSpeed);
+    int index = 0;
+    private final SinLFO xPeriod 
+      = new SinLFO(-1.0, 1.0, bounceSpeed);
+    LXProjection projection = new LXProjection(model);
 
-    private CircleLayer(LX lx) {
+    Random r;
+    float dx, dy, dz;
+
+    private CircleLayer(LX lx, int i) {
       super(lx);
-      addModulator(xPeriod).start();
+      
+      index = i;
+      r = new Random();
+      dx = r.nextFloat() / 1000.0;
+      dy = r.nextFloat() / 1000.0;
+      dz = r.nextFloat() / 1000.0;
+
+      addModulator(xPeriod.randomBasis()).start();
+      
+      projection.rotateX(r.nextFloat() * 360.0);
+      projection.rotateY(r.nextFloat() * 360.0);
+      projection.rotateZ(r.nextFloat() * 360.0);
     }
 
     public void run(double deltaMs) {
+
+      // control number of circles shown
+      if ((circles.getValuef() - 1.0) < (float)index) { return; }
+
+      // occasionally kick circkes out of sync
+      if (r.nextFloat() < 0.0001) { xPeriod.randomBasis(); }
+
+      // spin the circle some
+      projection.rotateX(dx * (float)deltaMs * rotateSpeed.getValuef());
+      projection.rotateY(dy * (float)deltaMs * rotateSpeed.getValuef());
+      projection.rotateZ(dz * (float)deltaMs * rotateSpeed.getValuef());
+      
+
+
+      float falloff = 5.0 / circleWidth.getValuef();
+      float center = xPeriod.getValuef() * model.zMax * extension.getValuef();
+      for (LXVector v : projection) {
+        float distanceFromBrightness = abs(center - v.z);
+        float brightness = max(0.0, 100.0 - falloff*distanceFromBrightness);
+        if (brightness <= 0.0) { continue; }
+        LXPoint p = new LXPoint(v.x, v.y, v.z);
+        colors[v.index] = LXColor.hsb(
+          palette.getHuef(p) + colorSpread.getValuef() * index,
+          100.0,
+          brightness
+        );
+      }
+
+      /*
       float falloff = 5.0 / colorFade.getValuef();
       for (LXPoint p : model.points) {
         float distanceFromBrightness = abs(xPeriod.getValuef() - p.z);
         colors[p.index] = LXColor.hsb(
-          palette.getHuef() + colorSpread.getValuef(),
+          palette.getHuef(p) + colorSpread.getValuef(),
           100.0,
           max(0.0, 100.0 - falloff*distanceFromBrightness)
         );
       }
+      */
     }
   }
+}
+
+
+/*
+public class Orbiter {
+    public final SinLFO xSlope = new SinLFO(-1, 1, startModulator(
+      new SinLFO(78000, 104000, 17000).randomBasis()
+    ));
+    
+    public final SinLFO ySlope = new SinLFO(-1, 1, startModulator(
+      new SinLFO(37000, 79000, 51000).randomBasis()
+    ));
+    
+    public final SinLFO zSlope = new SinLFO(-1, 1, startModulator(
+      new SinLFO(47000, 91000, 53000).randomBasis()
+    ));
+
+    public LXProjection projection = new LXProjection(model);
+
+    public Orbiter(
+
+    public void run(double deltaMs) {
+      
+
+
+    }
+}
+*/
+
+
+
+public float getPlanePointDist(PVector origin,PVector normal,PVector pos){
+ 
+    PVector hypotenuse = PVector.sub(pos,origin);
+    float c = hypotenuse.mag();
+ 
+    hypotenuse.normalize();
+    normal.normalize();
+ 
+    float cos = PVector.dot(normal, hypotenuse);
+ 
+    return cos*c;
 }
 
 

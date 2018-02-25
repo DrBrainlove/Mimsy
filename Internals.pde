@@ -32,6 +32,7 @@ UIBars uiBarsTL;
 UIBars uiBarsTR;
 
 UIMimsyControls uiMimsyControls;
+UIMimsyCamera uiMimsyCamera;
 
 UI3dContext uiContext;
 UI3dComponent pointCloudDodecahedron;
@@ -103,25 +104,22 @@ void setup() {
       public void onUIReady(LXStudio lx, LXStudio.UI ui) {
         //ui.preview.setRadius(80*FEET).setPhi(-PI/18).setTheta(PI/12);
         //ui.preview.setCenter(0, model.cy - 2*FEET, 0);
-        //ui.preview.addComponent(new UISimulation());
-        ui.preview.pointCloud.setPointSize(2.0).setVisible(true);
+        //ui.preview.addComponent(new UISimulation());       
+        ui.preview.addComponent(uiNodes = new UINodes());
         ui.preview.addComponent(uiBarsDD = new UIBars(((GraphModel)model).getLayer(DD)));
         ui.preview.addComponent(uiBarsTL = new UIBars(((GraphModel)model).getLayer(TL)));
         ui.preview.addComponent(uiBarsTR = new UIBars(((GraphModel)model).getLayer(TR)));
-
-        // Narrow angle lens, for a fuller visualization
-        // ui.preview.perspective.setValue(30);
-
+        ui.preview.pointCloud.setPointSize(2.0).setVisible(true);
         //ui.preview.pointCloud.setVisible(false); //TODO doesnt work
         uiMimsyControls = (UIMimsyControls) new UIMimsyControls(ui)
-                                              .setExpanded(false)
-                                              .addToContainer(ui.leftPane.global);
-
+          .addToContainer(ui.leftPane.global);
+        uiMimsyCamera = (UIMimsyCamera) new UIMimsyCamera(ui) 
+          .addToContainer(ui.leftPane.global);
+        
         // add Muse UI components
-        uiMuseControl = (UIMuseControl) new UIMuseControl(ui, muse, museHUD).setExpanded(true).addToContainer(ui.leftPane.global);
-
-        // Narrow angle lens, for a fuller visualization
+        uiMuseControl = (UIMuseControl) new UIMuseControl(ui, muse, museHUD).setExpanded(true).addToContainer(ui.leftPane.global);        // Narrow angle lens, for a fuller visualization
         ui.preview.perspective.setValue(30);
+        ui.preview.radius.setValue(RADIUS * 4.0);
 
        // uiTreeControls = (UITreeControls) new UITreeControls(ui).addToContainer(ui.leftPane.global);
         out("Initialized LX UI");
@@ -204,17 +202,22 @@ public static void mark() {
   lastMillis = System.currentTimeMillis();
 }
 
-public static void out(String format, Object... args) {
+
+public static void announce(String format, Object... args) {
   String timeStamp = new SimpleDateFormat("HH:mm:ss")
                          .format(new Date());
   //int now = millis();
   long now = System.currentTimeMillis();
   long dif = now - lastMillis;
   String prefix = String.format("%s (%5d ms): ", timeStamp, dif);
-  System.out.format(prefix);
+  out(prefix + format, args);
+  lastMillis = now;
+}
+
+public static void out(String format, Object... args) {
+  //System.out.format(prefix);
   System.out.format(format, args);
   if (!format.endsWith("\n")) {
     System.out.format("\n");
   }
-  lastMillis = now;
 }

@@ -60,61 +60,93 @@ class UIBars extends UI3dComponent {
 class UIMimsyControls extends UICollapsibleSection {
 
   public final UIButton pointsVisible;
+  public final UIButton nodesVisible;
   public final UIButton ddVisible;
   public final UIButton tlVisible;
   public final UIButton trVisible;
-  //public final UIButton nodesVisible;
+  
+  public final static int PADDING = 6;
+  private final static int CHILD_MARGIN = 1;
 
   public UIMimsyControls(final LXStudio.UI ui) {
     super(ui, 0, 0, ui.leftPane.global.getContentWidth(), 200);
     setTitle("RENDER");
-    setLayout(UI2dContainer.Layout.VERTICAL);
-    setChildMargin(2);
-
-    this.pointsVisible = (UIButton) new UIButton(0, 0, getContentWidth(), 18) {
-      public void onToggle(boolean on) {
-        ui.preview.pointCloud.setVisible(on);
-      }
-    }
-    .setLabel("Points")
-    .setActive(ui.preview.pointCloud.isVisible())
-    .addToContainer(this);
-
+    setLayout(UI2dContainer.Layout.HORIZONTAL_GRID);
+    //setLayout(UI2dContainer.Layout.VERTICAL);
+    setChildMargin(CHILD_MARGIN);
+    setPadding(PADDING);
+    //setPadding(0, PADDING, 0, PADDING);    
+    
+    //setLayout(UI2dContainer.Layout.VERTICAL);
     this.ddVisible = (UIButton) new UIButton(0, 0, getContentWidth() / 3 - 4, 18) {
       public void onToggle(boolean on) {
         uiBarsDD.setVisible(on);
-      }
-    }
-    .setLabel("DD")
-    .setActive(uiBarsDD.isVisible())
-    .addToContainer(this);
-
+      } } .setLabel("DD")
+          .setActive(uiBarsDD.isVisible())
+          .addToContainer(this);
+    
     this.tlVisible = (UIButton) new UIButton(0, 0, getContentWidth() / 3 - 4, 18) {
       public void onToggle(boolean on) {
         uiBarsTL.setVisible(on);
-      }
-    }
-    .setLabel("TL")
-    .setActive(uiBarsTL.isVisible())
-    .addToContainer(this);
+      } } .setLabel("TL")
+          .setActive(uiBarsTL.isVisible())
+          .addToContainer(this);
 
     this.trVisible = (UIButton) new UIButton(0, 0, getContentWidth() / 3 - 4, 18) {
       public void onToggle(boolean on) {
         uiBarsTR.setVisible(on);
-      }
-    }
-    .setLabel("TR")
-    .setActive(uiBarsTR.isVisible())
-    .addToContainer(this);
+      } } .setLabel("TR")
+          .setActive(uiBarsTR.isVisible())
+          .addToContainer(this);
+    
+
+    this.nodesVisible = (UIButton) new UIButton(0, 0, getContentWidth() / 2 - 6, 18) {
+      public void onToggle(boolean on) {
+        uiNodes.setVisible(on);
+      } } .setLabel("Nodes")
+          .setActive(uiNodes.isVisible())
+          .addToContainer(this);    
+   
+    this.pointsVisible = (UIButton) new UIButton(0, 0, getContentWidth() / 2 - 6, 18) {
+      public void onToggle(boolean on) {
+        ui.preview.pointCloud.setVisible(on);
+      } } .setLabel("Points")
+          .setActive(ui.preview.pointCloud.isVisible())
+          .addToContainer(this);
 
   }
 }
 
+public class UIMimsyCamera extends UICollapsibleSection {
+  public final static int PADDING = 6;
+  private final static int CHILD_MARGIN = 1;
+
+  public UIMimsyCamera(final LXStudio.UI ui) {
+    super(ui, 0, 0, ui.leftPane.global.getContentWidth(), 200);
+    setTitle("CAMERA");
+    setLayout(UI2dContainer.Layout.HORIZONTAL_GRID);
+    setChildMargin(CHILD_MARGIN);
+    setPadding(PADDING);
+
+    new UIButton(0, 0, getContentWidth(), 20)
+      .setLabel("Ortho Persp")
+      .setActiveLabel("Orthoscopic")
+      .setInactiveLabel("Perspective")
+      .setParameter(uiOrthoCamera)
+      .addToContainer(this);
+    
+    new UIKnob(0, 0).setParameter(ui.preview.perspective).addToContainer(this);
+    new UIKnob(0, 0).setParameter(ui.preview.depth).addToContainer(this);
+    new UIKnob(0, 0).setParameter(clipNear).addToContainer(this);
+    new UIKnob(0, 0).setParameter(clipFar).addToContainer(this);
+  }
+
+}
 
 
 class UINodes extends UI3dComponent {
 
-  private final float NODE_RADIUS = 10.0;
+  private final float NODE_RADIUS = 25.0;
   private String COLOR_SCHEME = "LEVEL_COLOR";
 
   protected void onDraw(UI ui, PGraphics pg) {
@@ -124,28 +156,30 @@ class UINodes extends UI3dComponent {
     float alp = 100.0;
 
     float dHue =  60;
-    float dSat =  20;
+    float dSat =   0;
     float dBrt =  20;
     noStroke();
+    pg.colorMode(HSB, 360.0, 100.0, 100.0);
     for (Node node : model.nodes) {
       int level = (int)Math.floor(node.index / 5.0);
       int spin = node.index % 5;
 
-      if (COLOR_SCHEME == "SPIN_COLOR") {
+      if (COLOR_SCHEME == "LEVEL_COLOR") {
         hue = level * dHue;
         sat = 100.0 - (spin * dSat);
         brt = 100.0 - (spin * dBrt);
-      } else if (COLOR_SCHEME == "LEVEL_COLOR") {
+      } else if (COLOR_SCHEME == "SPIN_COLOR") {
         hue = spin * dHue;
         sat = 100.0 - (level * dSat);
         brt = 100.0 - (level * dBrt);
       }
 
-      fill(hue,sat,brt,alp);
-      pushMatrix();
-      translate(node.x, node.y, node.z);
-      sphere(NODE_RADIUS);
-      popMatrix();
+      pg.fill(hue,sat,brt);
+      //pg.fill(hue,sat,brt,alp);
+      pg.pushMatrix();
+      pg.translate(node.x, node.y, node.z);
+      pg.sphere(NODE_RADIUS);
+      pg.popMatrix();
     }
 
     // NOTE: This renders the labels oriented in 3D, which makes them useless.
@@ -206,67 +240,6 @@ class UIWalls extends UI3dComponent {
   }
 }
 
-class UISimulationControl extends UIWindow {
-  UISimulationControl(UI ui, float x, float y) {
-    super(ui, "SIMULATION", x, y, UIChannelControl.WIDTH, 100);
-    y = UIWindow.TITLE_LABEL_HEIGHT;
-    new UIButton(4, y, width-8, 20)
-      .setLabel("Show Walls")
-      .setParameter(uiWalls.visible)
-      .addToContainer(this);
-    y += 24;
-    new UIButton(4, y, width-8, 20)
-      .setLabel("Show Nodes")
-      .setParameter(uiNodes.visible)
-      .addToContainer(this);
-    y += 24;
-
-    int w = 20;
-    int b = 4;
-    new UIButton(4, y, 30, 20)
-      .setLabel("DD")
-      .setParameter(pointCloudDodecahedron.visible)
-      .addToContainer(this);
-    new UIButton(38, y, 30, 20)
-      .setLabel("TL")
-      .setParameter(pointCloudTetraLeft.visible)
-      .addToContainer(this);
-    new UIButton(72, y, 30, 20)
-      .setLabel("TR")
-      .setParameter(pointCloudTetraRight.visible)
-      .addToContainer(this);
-  }
-}
-
-
-public class UICameraControlMimsy extends UIWindow {
-
-  public final static int WIDTH = 140;
-  public final static int HEIGHT = 102;
-
-  public UICameraControlMimsy(UI ui, UI3dContext context, float x, float y) {
-    super(ui, "CAMERA", x, y, WIDTH, HEIGHT);
-
-    float xp = 5;
-    float yp = UIWindow.TITLE_LABEL_HEIGHT;
-
-    new UIButton(xp, yp, WIDTH-8, 20)
-      .setLabel("Ortho Persp")
-      .setActiveLabel("Orthoscopic")
-      .setInactiveLabel("Perspective")
-      .setParameter(uiOrthoCamera)
-      .addToContainer(this);
-    yp += 24;
-    new UIKnob(xp, yp).setParameter(context.perspective).addToContainer(this);
-    xp += 34;
-    new UIKnob(xp, yp).setParameter(context.depth).addToContainer(this);
-    xp += 34;
-    new UIKnob(xp, yp).setParameter(clipNear).addToContainer(this);
-    xp += 34;
-    new UIKnob(xp, yp).setParameter(clipFar).addToContainer(this);
-  }
-
-}
 
 /** **********************************************************
  * UIMuseControl
@@ -322,5 +295,83 @@ class UIMuseControl extends UICollapsibleSection {
     }
   }
 }
+
+class UIComponentsDemo extends UIWindow {
+  
+  static final int NUM_KNOBS = 4; 
+  final BoundedParameter[] knobParameters = new BoundedParameter[NUM_KNOBS];  
+  
+  UIComponentsDemo(UI ui, float x, float y) {
+    super(ui, "UI COMPONENTS", x, y, 140, 10);
+    
+    for (int i = 0; i < knobParameters.length; ++i) {
+      knobParameters[i] = new BoundedParameter("Knb" + (i+1), i+1, 0, 4);
+      knobParameters[i].addListener(new LXParameterListener() {
+        public void onParameterChanged(LXParameter p) {
+          println(p.getLabel() + " value:" + p.getValue());
+        }
+      });
+    }
+    
+    y = UIWindow.TITLE_LABEL_HEIGHT;
+    
+    new UIButton(4, y, width-8, 20)
+    .setLabel("Toggle Button")
+    .addToContainer(this);
+    y += 24;
+    
+    new UIButton(4, y, width-8, 20)
+    .setActiveLabel("Boop!")
+    .setInactiveLabel("Momentary Button")
+    .setMomentary(true)
+    .addToContainer(this);
+    y += 24;
+    
+    for (int i = 0; i < 4; ++i) {
+      new UIKnob(4 + i*34, y)
+      .setParameter(knobParameters[i])
+      .setEnabled(i % 2 == 0)
+      .addToContainer(this);
+    }
+    y += 48;
+    
+    for (int i = 0; i < 4; ++i) {
+      new UISlider(UISlider.Direction.VERTICAL, 4 + i*34, y, 30, 60)
+      .setParameter(new BoundedParameter("VSl" + i, (i+1)*.25))
+      .setEnabled(i % 2 == 1)
+      .addToContainer(this);
+    }
+    y += 80;
+    
+    for (int i = 0; i < 2; ++i) {
+      new UISlider(4, y, width-8, 24)
+      .setParameter(new BoundedParameter("HSl" + i, (i + 1) * .25))
+      .setEnabled(i % 2 == 0)
+      .addToContainer(this);
+      y += 44;
+    }
+    
+    new UIToggleSet(4, y, width-8, 24)
+    .setParameter(new DiscreteParameter("Ltrs", new String[] { "A", "B", "C", "D" }))
+    .addToContainer(this);
+    y += 28;
+    
+    for (int i = 0; i < 4; ++i) {
+      new UIIntegerBox(4 + i*34, y, 30, 22)
+      .setParameter(new DiscreteParameter("Dcrt", 10))
+      .addToContainer(this);
+    }
+    y += 26;
+    
+    new UILabel(4, y, width-8, 24)
+    .setLabel("This is just a label.")
+    .setTextAlignment(CENTER, CENTER)
+    .setBorderColor(ui.theme.getControlDisabledColor())
+    .addToContainer(this);
+    y += 28;
+    
+    setSize(width, y);
+  }
+} 
 
 

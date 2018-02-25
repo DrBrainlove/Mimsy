@@ -26,9 +26,10 @@ private final String ControllerIPs[] = {
 
 
 /* ********** Physical Limits on Channels ********************************** */
-int nPixPerChannel = 512; // OPC server is set to 512 pix per channel
+int nPixPerChannel = 342; // OPC server is set to 512 pix per channel
 //int nChannelPerBoard = 5;
-int nChannelPerBoard = 15;
+//int nChannelPerBoard = 45;
+int nChannelPerBoard = 45;
 
 /* ********** Create an array for each board mapping each pixel to a channel */
 

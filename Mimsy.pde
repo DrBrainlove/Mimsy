@@ -25,7 +25,8 @@
 
 //****************************************************** USER FRIENDLY GLOBALS
 
-static final String MIMSY_TYPE = "MiniMim";
+//static final String MIMSY_TYPE = "MiniMim";
+static final String MIMSY_TYPE = "ArtCar";
 
 static final double GLOBAL_BRIGHTNESS = 1.0;
 

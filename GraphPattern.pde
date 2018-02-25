@@ -20,13 +20,16 @@ public abstract class GraphPattern extends LXPattern {
   }
 
   public void fade(LXPoint[] points, float fade) {
+    float MIN_BRIGHTNESS = 10.0;
     for (LXPoint p : points) {
       colors[p.index] =
         LXColor.scaleBrightness(colors[p.index], fade);
-    }
+      float brightness = LXColor.b(colors[p.index]);
+      if (brightness < MIN_BRIGHTNESS) {
+        colors[p.index] = LXColor.BLACK;
+      }
+    }      
   }
-
-
 }
 
 
@@ -524,6 +527,91 @@ public class TetrahedronTest extends LXPattern {
 
 */
 
+
+
+/** ********************************************************* TETRAHEDRON SPIN
+ * Spin around showing a single tetrahedron at a time.
+ ****************************************************************************/
+
+public class TetraSpin extends GraphPattern {
+
+  // rotations per second
+  private final BoundedParameter rotateSpeed
+      = new BoundedParameter("Spin", 4.0, 0.0, 10.0);
+  /*
+  private final BoundedParameter colorAttk
+      = new BoundedParameter("Attk", 300.0, 1.0, 1000.0);
+  private final BoundedParameter colorFade
+      = new BoundedParameter("Fade", 300.0, 1.0, 1000.0);
+  */
+  // fraction of period in phase
+  private final BoundedParameter colorAttk
+      = new BoundedParameter("Attk", 1.0, 0.0, 2.0);
+  private final BoundedParameter colorFade
+      = new BoundedParameter("Fade", 1.0, 0.0, 10.0);
+
+  Random r = new Random();
+
+  boolean shell = false;
+  int index = 0;
+  float elapsed = 0;
+  float period = 100;
+
+  public TetraSpin(LX lx) {
+    super(lx);
+    addParameter(rotateSpeed);
+    addParameter(colorAttk);
+    addParameter(colorFade);
+    
+    //for (GraphModel g: model.tetraL.subGraphs) { tetrahedra.add(g); }
+    //for (GraphModel g: model.tetraR.subGraphs) { tetrahedra.add(g); }
+  }
+
+  public void run(double deltaMs) {
+
+    // Track elapsed periods
+    period = 1000.0 / rotateSpeed.getValuef();
+    elapsed += (float)deltaMs;
+    if (elapsed >= period) {
+      elapsed = 0.0;
+      if (r.nextFloat() < 0.33) {
+        shell = !shell;
+      } else {
+        index = (index + (int)Math.floor(r.nextFloat() * 4.0)) % 5;
+        //index = (index + 1) % 5;
+      }
+    }
+
+    // Fade to Black
+    float fadeVal = 1.0 - (((float)deltaMs/period) / colorFade.getValuef());
+    float attkVal = elapsed/period / colorAttk.getValuef() * 100.0;
+    fade(model.points, fadeVal);
+
+    GraphModel tetra;
+    if (shell) { tetra = model.getLayer(TL).getLayer(index); }
+    else       { tetra = model.getLayer(TR).getLayer(index); }
+
+    Bar bar0 = tetra.bars[0];
+    float hue = 0.0;
+    float sat = 100.0;
+    float brt = min(100.0, attkVal);
+
+    for (int b = 0; b < tetra.bars.length; b++) {
+      Bar bar = tetra.bars[b];
+      for (LXPoint p: bar.points) {
+        hue = (float)palette.getHue(p);
+        colors[p.index] = LXColor.lightest(colors[p.index], LXColor.hsb(hue, sat, brt));
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
 /** ****************************************************** TETRAHEDRON MAPPING
  * Show the mapping for a single channel of a tetrahedron.
  ****************************************************************************/
@@ -554,25 +642,28 @@ public class MappingTetrahedron extends GraphPattern {
       colors[p.index] = LXColor.hsb(0.0,0.0,20.0);
     }
 
-    GraphModel tetraL = model.getLayer(TL).getLayer(0);
-    GraphModel tetraR = model.getLayer(TR).getLayer(0);
-    Bar bar0 = tetraL.bars[0];
-    float dHue = hueRange / ((float)tetraL.bars.length) / ((float)bar0.points.length);
-    float hue = 0.0;
-    for (int b = 0; b < tetraL.bars.length; b++) {
-      Bar bar = tetraL.bars[b];
-      for (LXPoint p: bar.points) {
-        colors[p.index] = lx.hsb(hue,baseSat,baseBrt);
-        hue += dHue;
-      }
-    }
 
-    hue = 0.0;
-    for (int b = 0; b < tetraR.bars.length; b++) {
-      Bar bar = tetraR.bars[b];
-      for (LXPoint p: bar.points) {
-        colors[p.index] = lx.hsb(hue,baseSat,baseBrt);
-        hue += dHue;
+    for (int i = 0; i < 5; i++) { 
+      GraphModel tetraL = model.getLayer(TL).getLayer(i);
+      GraphModel tetraR = model.getLayer(TR).getLayer(i);
+      Bar bar0 = tetraL.bars[0];
+      float dHue = hueRange / ((float)tetraL.bars.length) / ((float)bar0.points.length);
+      float hue = 0.0;
+      for (int b = 0; b < tetraL.bars.length; b++) {
+        Bar bar = tetraL.bars[b];
+        for (LXPoint p: bar.points) {
+          colors[p.index] = lx.hsb(hue,baseSat,baseBrt);
+          hue += dHue;
+        }
+      }
+
+      hue = 0.0;
+      for (int b = 0; b < tetraR.bars.length; b++) {
+        Bar bar = tetraR.bars[b];
+        for (LXPoint p: bar.points) {
+          colors[p.index] = lx.hsb(hue,baseSat,baseBrt);
+          hue += dHue;
+        }
       }
     }
   }
@@ -904,6 +995,8 @@ public class PixiePattern extends GraphPattern {
     //    System.out.format("FRAME %.2f\n", deltaMs);
     float fadeRate = 0;
     float speedRate = 0;
+    float calm;
+    float attention;
 
     if (museEnabled) {
       // NOTE: this usually uses getMellow() and getConcentration(), but
