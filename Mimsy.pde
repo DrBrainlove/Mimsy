@@ -1,7 +1,7 @@
 /*
 ** The Phage presents
 **    Mimsy
-**
+** 
 **        _---~~(~~-_.
 **      _{        )   )
 **    ,   ) -~~- ( ,-' )_
@@ -12,15 +12,15 @@
 **          ~~~~ {_ -_(())
 **                 `\  }
 **                   { }
-**
+**                    
 ** Authors:
 **   Alex Scouras
 **   Alex Maki-Jokela
 **   Mike Pesavento
 **     + pattern designers
-**
-** @date: 2015.12.26 DBL2
-** @date: 2017.01.15 Mimsy
+** 
+** @date: 2015.12.26
+** @date: 2017.01.15
 **/
 
 //****************************************************** USER FRIENDLY GLOBALS

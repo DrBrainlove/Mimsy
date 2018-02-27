@@ -331,6 +331,53 @@ public class BlankPattern extends LXPattern {
 
 
 
+public static void blendKernel(LXModel model, int[] colors) {
+
+  // Separate colors into components
+  int[][] oldRGB = new int[colors.length][3];
+  for (int i = 0; i < colors.length; i++) {
+    oldRGB[i][0] = LXColor.red(colors[i]) & 0xFF;
+    oldRGB[i][1] = LXColor.green(colors[i]) & 0xFF;
+    oldRGB[i][2] = LXColor.blue(colors[i]) & 0xFF;
+    if (false) {
+      out ("Color[%d]: %8X %2Xr %2Xg %2Xb\n", i, colors[i], oldRGB[i][0], oldRGB[i][1], oldRGB[i][2]);
+    }
+  }
+
+
+  //int[] kernel = new int[]{1, 1, 1, 1, 1};
+  int[] kernel = new int[]{1, 2, 4, 2, 1};
+  int width = (kernel.length - 1) / 2;
+
+  // blend colors by component
+  boolean debug = false;
+  for (int i = 0; i < colors.length; i++) {
+    if (i > 0) { debug = false; }
+    int[] newRGB = new int[3];
+    for (int c = 0; c < 3; c++) {
+      int sum = 0;
+      int div = 0;
+      if (debug) { out("BC[%3di][%1dc]\n", i, c); }
+      for (int j = 0; j < kernel.length; j++) {
+        int k = i+j-width;
+        if (k < 0 || k >= colors.length) { continue; }
+        int v = oldRGB[k][c];
+        int s = (int)v * kernel[j];
+        int d = kernel[j];
+        sum += s;
+        div += d;
+      if (debug) {   out("  [%dj][%dk]: %3dc  %3dk  %3dr  %3ds  %3dd  \n",
+            j, k, v, s, d, sum, div); }
+            
+      }
+      newRGB[c] = (int)Math.floor((float)sum / (float)div);
+      if (debug) { out("Final: %3d\n\n", newRGB[c]);}
+    }
+    colors[i] = LXColor.rgb(newRGB[0], newRGB[1], newRGB[2]);
+    if (debug) { out("Color: %x\n\n", colors[i]); }
+  }
+} 
+
 /** ************************************************************ CIRCLE BOUNCE
  * A plane bounces up and down the brain, making a circle of color.
  ************************************************************************** */
@@ -370,6 +417,9 @@ public class CircleBounce extends LXPattern {
   }
 
   public void run(double deltaMs) {
+
+    //blendKernel(model, colors);
+
     //fade(colorFade.getValuef());
     float fade = 1.0 - (float)Math.log10(colorFade.getValuef());
     //float fade = 1.0 - (float)Math.pow(colorFade.getValuef(), 4.0);
@@ -430,11 +480,13 @@ public class CircleBounce extends LXPattern {
         float brightness = max(0.0, 100.0 - falloff*distanceFromBrightness);
         if (brightness <= 0.0) { continue; }
         LXPoint p = new LXPoint(v.x, v.y, v.z);
-        colors[v.index] = LXColor.hsb(
-          palette.getHuef(p) + colorSpread.getValuef() * index,
-          100.0,
-          brightness
-        );
+        colors[v.index] = 
+          LXColor.lightest(colors[v.index], 
+                           LXColor.hsb(
+                           palette.getHuef(p) + colorSpread.getValuef() * index,
+                           100.0,
+                           brightness
+        ));
       }
 
       /*

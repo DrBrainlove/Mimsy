@@ -28,8 +28,13 @@ public abstract class GraphPattern extends LXPattern {
       if (brightness < MIN_BRIGHTNESS) {
         colors[p.index] = LXColor.BLACK;
       }
-    }      
+    }
   }
+
+
+
+
+
 }
 
 
