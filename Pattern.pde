@@ -113,7 +113,6 @@ public class LayerDemoPattern extends LXPattern {
  ************************************************************************** */
 public class Psychedelic extends LXPattern {
 
-  double ms = 0.0;
   double offset = 0.0;
   private final BoundedParameter colorScheme = new BoundedParameter("SCM", 0, 3);
   private final BoundedParameter cycleSpeed = new BoundedParameter("SPD",  5, 0, 200);
@@ -163,7 +162,6 @@ public class Psychedelic extends LXPattern {
       scheme = newScheme;
       }
 
-    ms += deltaMs;
     offset += deltaMs*cycleSpeed.getValuef()/1000.;
     int steps = (int)colorSpread.getValuef();
     if (steps != gp.steps) {
@@ -295,41 +293,13 @@ public class RainbowBarrelRoll extends LXPattern {
 }
 
 
-/** ***************************************************************** GRADIENT
- * Example public class making use of LXPalette's X/Y/Z interpolation to set
- * the color of each point in the model
- * @author Scouras
+
+
+
+
+/** ************************************************************* BLEND KERNEL
+ * 
  ************************************************************************* **/
-
-public class GradientPattern extends LXPattern {
-  public GradientPattern(LX lx) {
-    super(lx);
-  }
-
-  public void run(double deltaMs) {
-    for (LXPoint p : model.points) {
-      colors[p.index] = palette.getColor(p);
-    }
-  }
-}
-
-
-
-/*****************************************************************************
- *    PATTERNS PRIMARILY INTENDED TO DEMO CONCEPTS, BUT NOT BE DISPLAYED
- ****************************************************************************/
-public class BlankPattern extends LXPattern {
-  public BlankPattern(LX lx) {
-    super(lx);
-  }
-
-  public void run(double deltaMs) {
-    setColors(#000000);
-  }
-}
-
-
-
 
 public static void blendKernel(LXModel model, int[] colors) {
 
@@ -386,20 +356,20 @@ public class CircleBounce extends LXPattern {
   private final int MAX_CIRCLES = 10;
   private final float EXTENSION = 0.0;
 
-  private final BoundedParameter circles
-      = new BoundedParameter("Circles", 1.0, 1.0, (float)MAX_CIRCLES);
-  private final BoundedParameter extension
-      = new BoundedParameter("Extend", 1.0, 0.0, 2.0);
-  private final BoundedParameter rotateSpeed
-      = new BoundedParameter("Spin", 1.0, 0.0, 10.0);
-  private final BoundedParameter bounceSpeed 
-      = new BoundedParameter("Bounce",  10000, 0, 100000);
-  private final BoundedParameter colorSpread 
-      = new BoundedParameter("Color", 5.0, 0.0, 360.0);
-  private final BoundedParameter circleWidth
-      = new BoundedParameter("Width", 1, 0.0, 10.0);
-  private final BoundedParameter colorFade
-      = new BoundedParameter("Fade", 0.1, 0.0, 1.0);
+  private final CompoundParameter circles
+      = new CompoundParameter("Circles", 1.0, 1.0, (float)MAX_CIRCLES);
+  private final CompoundParameter extension
+      = new CompoundParameter("Extend", 1.0, 0.0, 2.0);
+  private final CompoundParameter rotateSpeed
+      = new CompoundParameter("Spin", 1.0, 0.0, 10.0);
+  private final CompoundParameter bounceSpeed 
+      = new CompoundParameter("Bounce",  10000, 0, 100000);
+  private final CompoundParameter colorSpread 
+      = new CompoundParameter("Color", 5.0, 0.0, 360.0);
+  private final CompoundParameter circleWidth
+      = new CompoundParameter("Width", 1, 0.0, 10.0);
+  private final CompoundParameter colorFade
+      = new CompoundParameter("Fade", 0.1, 0.0, 1.0);
 
 
   public CircleBounce(LX lx) {
@@ -481,25 +451,13 @@ public class CircleBounce extends LXPattern {
         if (brightness <= 0.0) { continue; }
         LXPoint p = new LXPoint(v.x, v.y, v.z);
         colors[v.index] = 
-          LXColor.lightest(colors[v.index], 
+          LXColor.screen(colors[v.index], 
                            LXColor.hsb(
                            palette.getHuef(p) + colorSpread.getValuef() * index,
                            100.0,
                            brightness
         ));
       }
-
-      /*
-      float falloff = 5.0 / colorFade.getValuef();
-      for (LXPoint p : model.points) {
-        float distanceFromBrightness = abs(xPeriod.getValuef() - p.z);
-        colors[p.index] = LXColor.hsb(
-          palette.getHuef(p) + colorSpread.getValuef(),
-          100.0,
-          max(0.0, 100.0 - falloff*distanceFromBrightness)
-        );
-      }
-      */
     }
   }
 }
