@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "timestamp": 1520084073533,
+  "timestamp": 1520116090267,
   "engine": {
     "id": 1,
     "class": "heronarts.lx.LXEngine",
@@ -18,9 +18,9 @@
       "focusedChannel": 0,
       "cueA": false,
       "cueB": false,
-      "multithreaded": true,
-      "channelMultithreaded": true,
-      "networkMultithreaded": true
+      "multithreaded": false,
+      "channelMultithreaded": false,
+      "networkMultithreaded": false
     },
     "palette": {
       "id": 2,
@@ -423,12 +423,12 @@
           "Band-2": 0.0,
           "Band-3": 0.0,
           "Band-4": 0.0,
-          "Band-5": 0.0,
-          "Band-6": 0.0,
-          "Band-7": 0.0,
-          "Band-8": 0.0,
-          "Band-9": 0.0,
-          "Band-10": 0.0,
+          "Band-5": 0.1403887526012485,
+          "Band-6": 0.13331946257824,
+          "Band-7": 0.4060732153744264,
+          "Band-8": 0.2101718899283368,
+          "Band-9": 0.25516854509550246,
+          "Band-10": 0.09336841826767672,
           "Band-11": 0.0,
           "Band-12": 0.0,
           "Band-13": 0.0,
@@ -502,7 +502,7 @@
     "ui": {
       "audioExpanded": false,
       "paletteExpanded": true,
-      "engineExpanded": false,
+      "engineExpanded": true,
       "cameraExpanded": true,
       "clipViewVisible": false,
       "modulatorExpanded": {},
