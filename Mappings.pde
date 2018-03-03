@@ -174,7 +174,7 @@ static class MimsyMap {
       out("BUILDING DODECAHEDRON (%d LEDs/Bar)\n", pixelsDD);
       PIXELS_PER_BAR = pixelsDD;
       dodecahedron = GraphModel.fromNodes(nodes, barsDD)
-                   . setLayer("Dodecahedron");
+                               .setLayer("Dodecahedron");
       //faces = buildCompound(nodes, dd.faceNet, DODECAHEDRON_BAR_ORDER);
     }
 
@@ -253,7 +253,7 @@ static class MimsyMap {
       out("BUILDING DODECAHEDRON (%d LEDs/Bar)\n", pixelsDD);
       PIXELS_PER_BAR = pixelsDD;
       dodecahedron = GraphModel.fromNodes(nodes, barsDD)
-                   . setLayer("Dodecahedron");
+                               .setLayer("Dodecahedron");
       //faces = buildCompound(nodes, dd.faceNet, DODECAHEDRON_BAR_ORDER);
     }
 
@@ -346,6 +346,7 @@ static class MimsyMap {
 
 
       //***** tetrahedral right
+      bars = new Bar[2];
       bars[0] = tetraR.bars[i*6+0];
       bars[1] = tetraR.bars[i*6+1];
       addChannel(bars);
@@ -357,7 +358,6 @@ static class MimsyMap {
       addChannel(bars);
 
       //***** tetrahedral left
-      bars = new Bar[2];
       bars[0] = tetraL.bars[i*6+0];
       bars[1] = tetraL.bars[i*6+1];
       addChannel(bars);
