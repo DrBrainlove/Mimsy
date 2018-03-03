@@ -88,7 +88,7 @@ void setup() {
   // TODO: this should gracefully handle lack of Muse OSC input
   muse = new MuseConnect(this, MUSE_OSCPORT);
   museHUD = new MuseHUD(muse);
-  out("added Muse OSC parser and HUD");
+  out("Added Muse OSC parser and HUD");
 
 
    try {
@@ -102,24 +102,35 @@ void setup() {
       }
 
       public void onUIReady(LXStudio lx, LXStudio.UI ui) {
-        //ui.preview.setRadius(80*FEET).setPhi(-PI/18).setTheta(PI/12);
-        //ui.preview.setCenter(0, model.cy - 2*FEET, 0);
-        //ui.preview.addComponent(new UISimulation());       
+        // Narrow angle lens, for a fuller visualization
+        ui.preview.perspective.setValue(15);
+        ui.preview.radius.setValue(RADIUS * 8.0);
+
+        // Unexpectedly, the default Left Handed coordinate system works
+        //ui.setCoordinateSystem(UI.CoordinateSystem.RIGHT_HANDED);
+      
+        // Add Components to 3D Simulation 
         ui.preview.addComponent(uiNodes = new UINodes());
         ui.preview.addComponent(uiBarsDD = new UIBars(((GraphModel)model).getLayer(DD)));
         ui.preview.addComponent(uiBarsTL = new UIBars(((GraphModel)model).getLayer(TL)));
         ui.preview.addComponent(uiBarsTR = new UIBars(((GraphModel)model).getLayer(TR)));
         ui.preview.pointCloud.setPointSize(2.0).setVisible(true);
-        //ui.preview.pointCloud.setVisible(false); //TODO doesnt work
+       
+       
+        // Add Control Pannels to Left UI Pannel
+        ui.leftPane.engine.setVisible(true);
+        
         uiMimsyControls = (UIMimsyControls) new UIMimsyControls(ui)
+          .setExpanded(false)
           .addToContainer(ui.leftPane.global);
         uiMimsyCamera = (UIMimsyCamera) new UIMimsyCamera(ui) 
+          .setExpanded(false)
           .addToContainer(ui.leftPane.global);
         
         // add Muse UI components
-        uiMuseControl = (UIMuseControl) new UIMuseControl(ui, muse, museHUD).setExpanded(true).addToContainer(ui.leftPane.global);        // Narrow angle lens, for a fuller visualization
-        ui.preview.perspective.setValue(30);
-        ui.preview.radius.setValue(RADIUS * 4.0);
+        uiMuseControl = (UIMuseControl) new UIMuseControl(ui, muse, museHUD)
+          .setExpanded(false)
+          .addToContainer(ui.leftPane.global);        
 
        // uiTreeControls = (UITreeControls) new UITreeControls(ui).addToContainer(ui.leftPane.global);
         out("Initialized LX UI");
@@ -131,6 +142,18 @@ void setup() {
   //end from tenere
 
 
+  //=================================================================== Engine
+  frameRate(TARGET_FRAMERATE + 0.1); // Weird hack, Windows box does 30 FPS when set to 60 for unclear reasons
+  //lx.flags.showFramerate = true;
+  lx.engine.setThreaded(true);
+  //lx.engine.output.mode.setValue(LXOutput.Mode.RAW);
+  out("Multithreaded: %b\n", lx.engine.isMultithreaded);
+  out("Channel Multithreaded: %b\n", lx.engine.isChannelMultithreaded);
+  out("Network Multithreaded: %b\n", lx.engine.isNetworkMultithreaded);
+
+
+
+
   if (TEST_SYMMETRY) {
     symTest = new SymmetryTest(model);
     symTest.runSymmetryTests();
@@ -140,6 +163,8 @@ void setup() {
 
   //==================================================== Output to Controllers
   // create outputs via CortexOutput
+  
+  // Use multi-threading for network output
   if (OUTPUT) {
     mimsyMap.buildChannelMap(model);
     buildOutputs();
@@ -185,7 +210,7 @@ static long startMillis = System.currentTimeMillis();
 static long lastMillis = startMillis;
 
 int FPS_TARGET = 60;
-boolean DRAW_FPS = true;
+boolean DRAW_FPS = false;
 void drawFPS() {
   if (DRAW_FPS) {
     fill(#FFFFFF);

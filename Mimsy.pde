@@ -29,6 +29,8 @@
 static final String MIMSY_TYPE = "ArtCar";
 
 static final double GLOBAL_BRIGHTNESS = 1.0;
+static final float TARGET_FRAMERATE = 120.0;
+
 
 static final int UI_LIGHT_HUE        =  0;
 static final int UI_LIGHT_SATURATION =  0; // white
