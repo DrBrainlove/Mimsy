@@ -30,6 +30,7 @@ class UIBars extends UI3dComponent {
       //drawCylinder(pg, bar.length, 1.0, LXColor.WHITE);
 
       for (LXPoint point : bar.points) {
+        //drawSegment(pg, bar.spacing, BAR_RADIUS, colors[point.index]);
         drawCylinder(pg, bar.spacing, BAR_RADIUS, colors[point.index]);
         pg.translate(bar.spacing, 0.0, 0.0);
       }
@@ -37,6 +38,23 @@ class UIBars extends UI3dComponent {
       //System.exit(0);
     }
   }
+
+  private void drawSegment(PGraphics pg, float length, float radius, int bar_color) {
+    float half_length = length/2.0;
+    pg.beginShape(QUADS);
+    pg.fill(bar_color);
+    pg.vertex(-half_length, -radius, 0);
+    pg.vertex(-half_length,  radius, 0);
+    pg.vertex( half_length,  radius, 0);
+    pg.vertex( half_length, -radius, 0);
+    
+    pg.vertex(-half_length, 0, -radius);
+    pg.vertex(-half_length, 0,  radius);
+    pg.vertex( half_length, 0,  radius);
+    pg.vertex( half_length, 0, -radius);
+    pg.endShape(CLOSE);
+  }
+
 
   private void drawCylinder(PGraphics pg, float length, float radius, int bar_color) {
     pg.beginShape(TRIANGLE_STRIP);
