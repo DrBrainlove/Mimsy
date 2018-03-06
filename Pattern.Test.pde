@@ -319,18 +319,19 @@ public class BuildOrder extends GraphPattern {
     barGroups.add(getBarBatch(gmDD, 3)); // DD::B::C+0
     barGroups.add(getBarBatch(gmTL, 0)); // TL::A::C+1
     barGroups.add(getBarBatch(gmTL, 3)); // TL::B::C-2
+    barGroups.add(getBarBatch(gmTR, 2)); // TR::A::C-2
+    barGroups.add(getBarBatch(gmTR, 3)); // TR::C::B-1
     
     // Level D
     barGroups.add(getBarBatch(gmDD, 4)); // DD::C::D+0
-    barGroups.add(getBarBatch(gmDD, 5)); // DD::D::D+1
     barGroups.add(getBarBatch(gmTL, 4)); // TL::A::D-1
+    barGroups.add(getBarBatch(gmTR, 4)); // TR::A::D+0
+    
+    barGroups.add(getBarBatch(gmDD, 5)); // DD::D::D+1
     barGroups.add(getBarBatch(gmTL, 5)); // TL::D::B-1
     barGroups.add(getBarBatch(gmTL, 1)); // TL::C::D-2
 
     // Outer Tetrahedra
-    barGroups.add(getBarBatch(gmTR, 2)); // TR::A::C-2
-    barGroups.add(getBarBatch(gmTR, 4)); // TR::A::D+0
-    barGroups.add(getBarBatch(gmTR, 3)); // TR::C::B-1
     barGroups.add(getBarBatch(gmTR, 1)); // TR::B::D-2
     barGroups.add(getBarBatch(gmTR, 5)); // TR::D::C-2
   }
