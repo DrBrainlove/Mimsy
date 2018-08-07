@@ -345,8 +345,8 @@ public class SymmetryTestPattern extends GraphPattern {
 public class TetraSpin extends GraphPattern {
 
   // rotations per second
-  private final BoundedParameter rotateSpeed
-      = new BoundedParameter("Spin", 4.0, 0.0, 10.0);
+  private final CompoundParameter rotateSpeed
+      = new CompoundParameter("Spin", 4.0, 0.0, 10.0);
   /*
   private final BoundedParameter colorAttk
       = new BoundedParameter("Attk", 300.0, 1.0, 1000.0);
@@ -354,10 +354,10 @@ public class TetraSpin extends GraphPattern {
       = new BoundedParameter("Fade", 300.0, 1.0, 1000.0);
   */
   // fraction of period in phase
-  private final BoundedParameter colorAttk
-      = new BoundedParameter("Attk", 1.0, 0.0, 2.0);
-  private final BoundedParameter colorFade
-      = new BoundedParameter("Fade", 1.0, 0.0, 10.0);
+  private final CompoundParameter colorAttk
+      = new CompoundParameter("Attk", 1.0, 0.0, 2.0);
+  private final CompoundParameter colorFade
+      = new CompoundParameter("Fade", 1.0, 0.0, 10.0);
 
   Random r = new Random();
 

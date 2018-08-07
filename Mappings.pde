@@ -128,9 +128,9 @@ static class MimsyMap {
 
 
 
-  /** 
+  /** ************************************************************************
    * Build MiniMim Model
-   **/
+   * ************************************************************************/
 
   public GraphModel buildModelMiniMim() {
   
@@ -152,7 +152,11 @@ static class MimsyMap {
 
 
     int[][] TETRAHEDRON_BAR_ORDER = 
-      new int[][] {{0,1},{1,2},{2,3},{3,1},{2,0},{0,3}};
+      new int[][] {
+        {0,1},{1,2},
+        {2,3},{3,1},
+        {2,0},{0,3},
+      };
 
 
     Node[] nodes = new Node[dd.NODES];
@@ -203,9 +207,9 @@ static class MimsyMap {
       .setLayer("Mimsy");
   }
 
-  /** 
+  /** ************************************************************************
    * Build Mimsy Art Car Model
-   **/
+   **************************************************************************/
 
   public GraphModel buildModelArtCar() {
   

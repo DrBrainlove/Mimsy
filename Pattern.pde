@@ -111,15 +111,18 @@ public class LayerDemoPattern extends LXPattern {
  * Demo pattern for GeneratorPalette.
  * @author scouras
  ************************************************************************** */
-public class Psychedelic extends LXPattern {
+public class Psychedelic extends GraphPattern {
 
   double offset = 0.0;
-  private final BoundedParameter colorScheme = new BoundedParameter("SCM", 0, 3);
-  private final BoundedParameter cycleSpeed = new BoundedParameter("SPD",  5, 0, 200);
-  private final BoundedParameter colorSpread = new BoundedParameter("LEN", 50, 2, 1000);
-  private final BoundedParameter colorHue = new BoundedParameter("HUE",  0., 0., 359.);
-  private final BoundedParameter colorSat = new BoundedParameter("SAT", 90., 0., 100.);
-  private final BoundedParameter colorBrt = new BoundedParameter("BRT", 80., 0., 100.);
+  private final CompoundParameter colorScheme = new CompoundParameter("SCM", 0, 3);
+  private final CompoundParameter cycleSpeed  = new CompoundParameter("SPD",  5, 0, 200);
+  private final CompoundParameter colorSpread = new CompoundParameter("LEN", 50, 2, 1000);
+  private final CompoundParameter colorHue = new CompoundParameter("HUE",  0., 0., 359.);
+  private final CompoundParameter colorSat = new CompoundParameter("SAT", 90., 0., 100.);
+  private final CompoundParameter colorBrt = new CompoundParameter("BRT", 80., 0., 100.);
+
+  private final BooleanParameter followBars = new BooleanParameter("Mode");
+
   private GeneratorPalette gp =
       new GeneratorPalette(
           new ColorOffset(0xDD0000).setHue(colorHue)
@@ -142,6 +145,7 @@ public class Psychedelic extends LXPattern {
     addParameter(colorHue);
     addParameter(colorSat);
     addParameter(colorBrt);
+    addParameter(followBars);
     /*println("Did we find an EV? ");
     println(EV);
     EV.bindKnob(colorHue, 0);
@@ -150,7 +154,7 @@ public class Psychedelic extends LXPattern {
     */
   }
 
-    public void run(double deltaMs) {
+  public void run(double deltaMs) {
     int newScheme = (int)Math.floor(colorScheme.getValue());
     if ( newScheme != scheme) {
       switch(newScheme) {
@@ -167,9 +171,19 @@ public class Psychedelic extends LXPattern {
     if (steps != gp.steps) {
       gp.setSteps(steps);
     }
-    gp.reset((int)offset);
-    for (LXPoint p : model.points) {
-      colors[p.index] = gp.getColor();
+
+    if (followBars.getValueb()) {
+      for (Bar bar : model.bars) {
+        gp.reset((int)offset);
+        for (LXPoint p : bar.points) {
+          colors[p.index] = gp.getColor();
+        }
+      }
+    } else {
+      gp.reset((int)offset);
+      for (LXPoint p : model.points) {
+        colors[p.index] = gp.getColor();
+      }
     }
   }
 }

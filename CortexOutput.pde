@@ -18,8 +18,8 @@ import java.util.*;
 private final String ControllerIPs[] = {
   //"192.168.1.85",
   //"192.168.1.81",
-  "192.168.1.87",
-  // "192.168.1.86",
+  //"192.168.1.87",
+  "192.168.1.86",
 };
 
 //public ArrayList<int[]> channelMap;
@@ -28,9 +28,9 @@ private final String ControllerIPs[] = {
 /* ********** Physical Limits on Channels ********************************** */
 int nPixPerChannel = 342; // OPC server is set to 512 pix per channel
 //int nPixPerChannel = 512; // OPC server is set to 512 pix per channel
-//int nChannelPerBoard = 5;
+int nChannelPerBoard = 15;
 //int nChannelPerBoard = 45;
-int nChannelPerBoard = 45;
+//int nChannelPerBoard = 45;
 
 /* ********** Create an array for each board mapping each pixel to a channel */
 
@@ -58,8 +58,8 @@ void buildOutputs() {
     //}
     //lx.addOutput(new CortexOutput(lx ,"192.168.1.85", 1, concatenateChannels(1)));
     //lx.addOutput(new CortexOutput(lx ,"192.168.1.81", 2, concatenateChannels(2)));
-    lx.addOutput(new CortexOutput(lx, "192.168.1.87", 1, concatenateChannels(1)));
-    //lx.addOutput(new CortexOutput(lx ,"192.168.1.86", 3, concatenateChannels(3)));
+    //lx.addOutput(new CortexOutput(lx, "192.168.1.87", 1, concatenateChannels(1)));
+    lx.addOutput(new CortexOutput(lx ,"192.168.1.86", 1, concatenateChannels(1)));
 }
 
 /* ********** List of Output Boards for UI **********************************/

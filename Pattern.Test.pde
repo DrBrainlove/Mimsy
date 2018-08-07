@@ -110,6 +110,55 @@ public class TestTetraBars extends GraphPattern {
 }
 
 
+/** ******************************************************* TEST CHANNEL ORDER
+ * Just light channel 1-5 a different color, but the same in each layer.
+ * Useful for making sure you plugged things in in order.
+ ****************************************************************************/
+
+public class TestChannelOrder extends GraphPattern {
+
+  private final CompoundParameter brtMid
+      = new CompoundParameter("brtMid", 10.0, 0.0, 100.0);
+  private final CompoundParameter brtEnd
+      = new CompoundParameter("brtEnd", 100.0, 0.0, 100.0);
+
+  int buffer = 1;
+  int length;
+  float hue =   0.0;
+  float sat = 100.0;
+  float brt = 100.0;
+
+  GraphModel gmDD = model.getLayer(DD);
+  GraphModel gmTL = model.getLayer(TL);
+  GraphModel gmTR = model.getLayer(TR);
+
+
+  public TestChannelOrder(LX lx) {
+    super(lx);
+  }
+
+  public void run(double deltaMs) {
+
+    hue = 0.0;
+    
+    for (int c = 0; c < 5; c++) {
+      for (int d = 0; d < 6; d++) {
+        for (LXPoint p: gmDD.bars[c*6 + d].points) {
+          colors[p.index] = LXColor.hsb(hue,sat,brt);
+        }
+      }
+      for (LXPoint p: gmTL.subGraphs.get(c).points) {
+        colors[p.index] = LXColor.hsb(hue,sat,brt);
+      }
+      for (LXPoint p: gmTR.subGraphs.get(c).points) {
+        colors[p.index] = LXColor.hsb(hue,sat,brt);
+      }
+      hue += 60;
+    }
+  }
+}
+
+
 
 /** ********************************************************** TEST TETRAHEDRA
  * Light each tetrahedron a different color, and blank the black pixel
@@ -416,6 +465,7 @@ public class MappingTetrahedron extends GraphPattern {
 
 
     for (int i = 0; i < 5; i++) { 
+      if (i > 0) { continue; }
       GraphModel tetraL = model.getLayer(TL).getLayer(i);
       GraphModel tetraR = model.getLayer(TR).getLayer(i);
       Bar bar0 = tetraL.bars[0];

@@ -53,12 +53,17 @@ public static class Swirl extends LXPattern {
   ));
   
   public final CompoundParameter swarmBase = new CompoundParameter("Base",
-    12*INCHES,
-    1*INCHES,
-    140*INCHES
+    //12*INCHES,
+    //1*INCHES,
+    //140*INCHES
+
+    RADIUS /  10.0,
+    RADIUS /  50.0,
+    RADIUS /   2.0
   );
   
-  public final CompoundParameter swarmMod = new CompoundParameter("Mod", 0, 120*INCHES);
+  public final CompoundParameter swarmMod = new CompoundParameter("Mod", 0, RADIUS/10.0);
+  //public final CompoundParameter swarmMod = new CompoundParameter("Mod", 0, 120*INCHES);
   
   public final SinLFO swarmSize = new SinLFO(0, swarmMod, 19000);
   
@@ -103,8 +108,10 @@ public static class Swirl extends LXPattern {
     for (LXPoint p : model.points) {
       float radix = (xSlope*(p.x-model.cx) + ySlope*(p.y-model.cy) + zSlope*(p.z-model.cz)) % swarmSize; // (p.x - model.xMin + p.y - model.yMin) % swarmSize;
       float dist = dist(p.x, p.y, xPos, yPos); 
-      float size = max(20*INCHES, 2*swarmSize - .5*dist);
+      float size = max(RADIUS / 10.0, 2*swarmSize - .5*dist);
+      //float size = max(20*INCHES, 2*swarmSize - .5*dist);
       float b = 100 - (100 / size) * LXUtils.wrapdistf(radix, pos * swarmSize, swarmSize);
+      b = constrain(b, 0, 100);      
       colors[p.index] = (b > 0) ? palette.getColor(p, b) : #000000;
     }
   }
@@ -128,6 +135,8 @@ public static class Rotors extends LXPattern {
   public final SinLFO falloff2 = new SinLFO(250, 800, startModulator(
     new SinLFO(6000, 11000, 19880)
   ));
+
+  public float maxb = 0;
   
   public Rotors(LX lx) {
     super(lx);
@@ -151,7 +160,14 @@ public static class Rotors extends LXPattern {
         100 - fv2 * LXUtils.wrapdistf(p.azimuth, aziumuth2, PI)
       );
       b = max(30, b);
+      /*
+      if (b > maxb) {
+        out("New Max B: %.2f\n", b);
+        maxb = b;
+      }
+      b = b * 100.0 / maxb;*/
       float s = constrain(50 + b/2, 0, 100);
+      b = constrain(b, 0, 100);
       colors[p.index] = palette.getColor(p, s, b);
       
     }
