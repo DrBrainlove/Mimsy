@@ -519,6 +519,146 @@ public float getPlanePointDist(PVector origin,PVector normal,PVector pos){
 }
 
 
+
+/** ************************************************************ PIXIE PATTERN
+ * Points of light that chase along the edges.
+ *
+ * More ideas for later:
+ * - Scatter/gather (they swarm around one point, then fly by
+ *   divergent paths to another point)
+ * - Fireworks (explosion of them coming out of one point)
+ * - Multiple colors (maybe just a few in a different color)
+ *
+ * @author Geoff Schmiddt
+ * Modified by Mike Pesavento to allow Muse interaction
+ ************************************************************************* **/
+class PixiePattern extends LXPattern {
+  // How many pixies are zipping around.
+  private final BasicParameter numPixies =
+      new BasicParameter("NUM", 100, 0, 1000);
+  // How fast each pixie moves, in pixels per second.
+  private final BasicParameter speed =
+      new BasicParameter("SPD", 60.0, 10.0, 1000.0);
+  // How long the trails persist. (Decay factor for the trails, each frame.)
+  // XXX really should be scaled by frame time
+  private final BasicParameter fade =
+      new BasicParameter("FADE", 0.9, 0.8, .99);
+  // Brightness adjustment factor.
+  private final BasicParameter brightness =
+      new BasicParameter("BRIGHT", 1.0, .25, 2.0);
+  private final BasicParameter colorHue = new BasicParameter("HUE", 210, 0, 359.0);
+  private final BasicParameter colorSat = new BasicParameter("SAT", 63.0, 0.0, 100.0);
+
+
+  class Pixie {
+    public Node fromNode, toNode;
+    public double offset;
+    public int kolor;
+
+    public Pixie() {
+    }
+  }
+  private ArrayList<Pixie> pixies = new ArrayList<Pixie>();
+
+  public PixiePattern(LX lx) {
+    super(lx);
+    addParameter(numPixies);
+    addParameter(fade);
+    addParameter(speed);
+    addParameter(brightness);
+    addParameter(colorHue);
+    addParameter(colorSat);
+
+  }
+
+  public void setPixieCount(int count) {
+    //make sure all pixies are set to current color
+    for (Pixie p : this.pixies) {
+      p.kolor = lx.hsb(colorHue.getValuef(), colorSat.getValuef(), 100);
+    }
+
+    while (this.pixies.size() < count) {
+      Pixie p = new Pixie();
+      p.fromNode = model.getRandomNode();
+      p.toNode = p.fromNode.random_adjacent_node();
+      p.kolor = lx.hsb(colorHue.getValuef(), colorSat.getValuef(), 100);
+      this.pixies.add(p);
+    }
+    if (this.pixies.size() > count) {
+      this.pixies.subList(count, this.pixies.size()).clear();
+    }
+  } 
+
+  public void run(double deltaMs) {
+    this.setPixieCount(Math.round(numPixies.getValuef()));
+    //    System.out.format("FRAME %.2f\n", deltaMs);
+    float fadeRate = 0;
+    float speedRate = 0;
+    // ***** HERE is the magical muse line
+    // This boolean comes from a global variable, set in Internals.pde
+
+    if (museActivated) {
+      fadeRate = map(muse.getMellow(), 0.0, 1.0, (float)fade.range.min, (float)fade.range.max);
+      speedRate = map(muse.getConcentration(), 0.0, 1.0, (float)20.0, 300);
+    }
+    else {
+      fadeRate = fade.getValuef();
+      speedRate = speed.getValuef();
+    }
+
+    for (LXPoint p : model.points) {
+     colors[p.index] =
+         LXColor.scaleBrightness(colors[p.index], fadeRate);
+    }
+
+    for (Pixie p : this.pixies) {
+      double drawOffset = p.offset;
+      p.offset += (deltaMs / 1000.0) * speedRate;
+      //      System.out.format("from %.2f to %.2f\n", drawOffset, p.offset);
+
+      while (drawOffset < p.offset) {
+          //        System.out.format("at %.2f, going to %.2f\n", drawOffset, p.offset);
+        List<LXPoint> points = nodeToNodePoints(p.fromNode, p.toNode);
+
+        int index = (int)Math.floor(drawOffset);
+        if (index >= points.size()) {
+          Node oldFromNode = p.fromNode;
+          p.fromNode = p.toNode;
+          do {
+            p.toNode = p.fromNode.random_adjacent_node();
+          }
+          while (angleBetweenThreeNodes(oldFromNode, p.fromNode, p.toNode)
+                   < 4*PI/360*3); // don't go back the way we came
+          drawOffset -= points.size();
+          p.offset -= points.size();
+          //          System.out.format("next edge\n");
+          continue;
+        }
+
+        // How long, notionally, was the pixie at this pixel during
+        // this frame? If we are moving at 100 pixels per second, say,
+        // then timeHereMs will add up to 1/100th of a second for each
+        // pixel in the pixie's path, possibly accumulated over
+        // multiple frames.
+        double end = Math.min(p.offset, Math.ceil(drawOffset + .000000001));
+        double timeHereMs = (end - drawOffset) /
+            speedRate * 1000.0;
+
+        LXPoint here = points.get((int)Math.floor(drawOffset));
+        //        System.out.format("%.2fms at offset %d\n", timeHereMs, (int)Math.floor(drawOffset));
+
+        addColor(here.index,
+                 LXColor.scaleBrightness(p.kolor,
+                                         (float)timeHereMs / 1000.0
+                                         * speedRate
+                                         * brightness.getValuef()));
+        drawOffset = end;
+      }
+    }
+  }
+}
+
+
 /** ******************************************************************* STROBE
  * Simple monochrome strobe light.
  * @author Geoff Schmidt
