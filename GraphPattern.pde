@@ -371,7 +371,7 @@ public class TetraSpin extends GraphPattern {
     addParameter(rotateSpeed);
     addParameter(colorAttk);
     addParameter(colorFade);
-    
+
     //for (GraphModel g: model.tetraL.subGraphs) { tetrahedra.add(g); }
     //for (GraphModel g: model.tetraR.subGraphs) { tetrahedra.add(g); }
   }
@@ -550,6 +550,8 @@ public class PixiePattern extends GraphPattern {
       // Nothing to do in here, just a holder for attributes
     }
   }
+
+  // the list of active particles
   private ArrayList<Pixie> pixies = new ArrayList<Pixie>();
 
   public PixiePattern(LX lx) {
