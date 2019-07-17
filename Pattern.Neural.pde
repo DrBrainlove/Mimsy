@@ -234,7 +234,8 @@ class AVBrainPattern extends LXPattern {
   AudioInput audio_in;
   IIRFilter bpf;
 
-  // (MJP): channel locations of audio input?
+  // (MJP):
+  // maybe idx of the nodes creating the visual representation of audio source?
   int audio_source_left = 84;
   int audio_source_right = 85;
 
@@ -367,14 +368,14 @@ class AVBrainPattern extends LXPattern {
   public void run(double deltaMs) {
     audio_source_right = noise.nextInt(n_sources);
     audio_source_left = noise.nextInt(n_sources);
-    for (int s=0; s < nsteps.getValue (); s++) {
+    for (int s=0; s < nsteps.getValue(); s++) {
       step_simulation();
     }
     float dmin=min(sensor_act);
     float dmax=max(sensor_act);
     for (int i=0; i<n_nodes; i++) {
       float v = (sensor_act[i]-dmin)/(dmax-dmin);
-      Node node = model.nodemap.get(lf_nodes[i]);
+      Node node = model.nodes.get(lf_nodes[i]);
       barlist = node.adjacent_bars();
       for (Bar b : barlist) {
         for (LXPoint p : b.points) {
