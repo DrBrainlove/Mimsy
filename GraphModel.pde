@@ -168,12 +168,11 @@ public static class GraphModel extends LXModel {
   //******************************************************************** NODES
 
 
-  /*
   public Node getRandomNode() {
     Random randomized = new Random();
     return nodes[randomized.nextInt(nodes.length)];
   }
-  */
+
 
   public Node getRandomNode(Object... args) {
     Random randomized = new Random();

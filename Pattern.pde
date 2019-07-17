@@ -713,7 +713,6 @@ public class MoireManifoldPattern extends LXPattern{
  *
  * @author Geoff Schmidt
  ************************************************************************* **/
-
 /*
 public class WaveFrontPattern extends LXPattern {
   // Number of splats
