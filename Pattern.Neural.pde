@@ -24,6 +24,7 @@
  *    muse-io --preset 14 --osc osc.udp://localhost:5000
  *
  */
+/*
 class EEGBandwidthParticlesPattern extends LXPattern {
   // How many pixies are zipping around.
   private final BoundedParameter numPixies = new BoundedParameter("NUM", 50, 0, 400);
@@ -120,8 +121,8 @@ class EEGBandwidthParticlesPattern extends LXPattern {
     public void setPixieCount(int count) {
       while ( this.pixies.size() < count) {
         Pixie p = new Pixie();
-        p.fromNode = EEGBandwidthParticlesPattern.this.model.getRandomNode();
-        p.toNode = p.fromNode.random_adjacent_node();
+        p.fromNode = model.getRandomNode();
+        p.toNode = model.getRandomNode(p.fromNode);
         p.pixieColor = this.pixieColor;
         // add a noisy base speed here?
         this.pixies.add(p);
@@ -207,7 +208,7 @@ class EEGBandwidthParticlesPattern extends LXPattern {
   } //end PixiePattern
 } //end EEGBandwidthParticlesPattern
 
-
+*/
 
 
 
@@ -260,7 +261,7 @@ class AVBrainPattern extends LXPattern {
   //float k;
 
   //working variables
-  float[][] act;
+  float[][] activity;
   float[] sensor_act;
   Random noise;
   List<Bar> barlist;
@@ -318,13 +319,13 @@ class AVBrainPattern extends LXPattern {
 
     //initialize
     //k = 1/n_sources;
-    act = new float[n_sources][max_delay+2];
+    activity = new float[n_sources][max_delay+2];
     sensor_act = new float[n_nodes];
 
     noise = new Random();
     for (int i=0; i < n_sources; i++) {
       for (int j=0; j < max_delay; j++) {
-        act[i][j]=(float)((noise.nextGaussian())*sigma.getValue()/100);
+        activity[i][j]=(float)((noise.nextGaussian())*sigma.getValue()/100);
       }
     }
 
@@ -340,28 +341,25 @@ class AVBrainPattern extends LXPattern {
     for (int i=0; i<n_sources; i++) {
       float w=0;
       for (int j=0; j<n_sources; j++) {
-        w = w+C[j][i]*act[j][t-D[j][i]];
+        w = w+C[j][i]*activity[j][t-D[j][i]];
       }
       //floats can't possibly be helping at this point
-      act[i][t+1]=act[i][t] + tstep/.2 * (-act[i][t]+(k.getValuef()/100/n_nodes)*w+(sigma.getValuef()/100*noise.nextGaussian()));
+      activity[i][t+1]=activity[i][t] + tstep/.2 * (-activity[i][t]+(k.getValuef()/100/n_nodes)*w+(sigma.getValuef()/100*(float)noise.nextGaussian()));
     }
-    act[audio_source_left][t+1]=act[audio_source_left][t+1]+audio_in.left.get(0)*(audio_wt.getValuef()/1000);//*tstep;
-    act[audio_source_right][t+1]=act[audio_source_right][t+1]+audio_in.right.get(0)*(audio_wt.getValuef()/1000);//*tstep;
-    //System.out.println(act[84][t+1]);
-
-
-
+    activity[audio_source_left][t+1]=activity[audio_source_left][t+1]+audio_in.left.get(0)*(audio_wt.getValuef()/1000);//*tstep;
+    activity[audio_source_right][t+1]=activity[audio_source_right][t+1]+audio_in.right.get(0)*(audio_wt.getValuef()/1000);//*tstep;
+    //System.out.println(activity[84][t+1]);
 
     //update node values
     for (int i=0; i<n_nodes; i++) {
       for (int j=0; j<n_sources; j++) {
-        sensor_act[i]=sensor_act[i] + gain[i][j]*act[j][t+1]*10;
+        sensor_act[i]=sensor_act[i] + gain[i][j]*activity[j][t+1]*10;
       }
     }
     //ugh
     for (int j=1; j< max_delay+2; j++) {
       for (int i=0; i<n_sources; i++) {
-        act[i][j-1]=act[i][j];
+        activity[i][j-1]=activity[i][j];
       }
     }
   }

@@ -200,6 +200,9 @@ public static class GraphModel extends LXModel {
     return bars[randomized.nextInt(bars.length)];
   }
 
+  /*
+  Pass a target node to randomly select one of the adjacent bars
+  */
   public Bar getRandomBar(Object... args) {
     Random randomized = new Random();
     List<Bar> bars = Arrays.asList(this.bars);
