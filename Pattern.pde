@@ -107,7 +107,7 @@ public class LayerDemoPattern extends LXPattern {
 
 
 /** ************************************************************** PSYCHEDELIC
- * Colors entire brain in modulatable psychadelic color palettes
+ * Colors entire brain in modulatable psychedelic color palettes
  * Demo pattern for GeneratorPalette.
  * @author scouras
  ************************************************************************** */

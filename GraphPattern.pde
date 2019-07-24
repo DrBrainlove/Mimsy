@@ -31,10 +31,6 @@ public abstract class GraphPattern extends LXPattern {
     }
   }
 
-
-
-
-
 }
 
 
@@ -660,8 +656,6 @@ public class PixiePattern extends GraphPattern {
 }
 
 
-
-
 /** ********************************************************************
  * Muse bandwidth energy pattern
  *
@@ -872,4 +866,47 @@ public class EEGBandwidthParticlesPattern extends GraphPattern {
 } //end EEGBandwidthParticlesPattern
 
 
+/** ************************************************************
+ *  Make the dodecahedron twinkle
+ *  play with the shapes
+ * @author Mike Pesavento
+ *
+ */
+public class DDTwinkle extends GraphPattern {
+
+  private final BoundedParameter rate =
+      new BoundedParameter("RATE", 20.0, 1.0, 80.0);
+  private final BoundedParameter hue =
+    new BoundedParameter("HUE", 30, 0, 360);
+  private final BoundedParameter hueWidth =
+    new BoundedParameter("HUEW", 40, 0, 360);
+
+  private final BoundedParameter fadeRate =
+    new BoundedParameter("FADE", 1.75, 0.001, 5.0);
+
+  Random rand = new Random();
+
+
+  public DDTwinkle(LX lx) {
+    super(lx);
+    addParameter(rate);
+    addParameter(hue);
+    addParameter(hueWidth);
+    addParameter(fadeRate);
+  }
+
+  public void run(double deltaMs) {
+    fade(model.getLayer(DD).points, 1.0 - (fadeRate.getValuef() * (float)deltaMs / 1000.0));
+
+    ArrayList<LXPoint> twinklePoints = model.getLayer(DD)
+        .getRandomPoints((int)rate.getValuef());
+    for(LXPoint p: twinklePoints) {
+      int hueShift = rand.nextInt((int)hueWidth.getValuef());
+      float curHue = (hue.getValuef() + hueShift - hueShift / 2) % 360;
+      colors[p.index] = lx.hsb(curHue, 100, 100);
+    }
+
+  }
+
+}
 
