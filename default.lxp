@@ -287,6 +287,17 @@
               "triggers": []
             },
             "autoCycleEnabled": true
+          },
+          {
+            "id": 888,
+            "class": "Mimsy$TimeToLivePattern",
+            "modulationColor": -3473153,
+            "parameters": {
+              "label": "TimeToLive",
+              "Spin": 2.2000000402331352,
+              "Attk": 1.0599999986588955,
+              "Fade": 2.4999999664723873
+            }
           }
         ]
       },
