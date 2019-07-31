@@ -34,12 +34,12 @@
 
 public enum Generator { BAR, NODE, FACE, INVERT };
 public enum Kind { TETRAHEDRAL, ICOSAHEDRAL };
-  
+
 
 
 //********************************************************** SYMMETRY ELEMENTS
 
-/** 
+/**
  * Encapsulates and stores the base generators for later use
  */
 public static class Element {
@@ -60,7 +60,7 @@ public static class Element {
   // Make sure all elements are ready before attempting computations
   private boolean initialized = false;
 
-  
+
   /**
    * Construct an element which take all steps
    */
@@ -77,7 +77,7 @@ public static class Element {
 
   /**
    * Construct an Element which takes specific steps
-   */ 
+   */
   public Element(Generator type, int[] nodes, int[] steps) {
     this.type = type;
     this.nodes = nodes;;
@@ -86,7 +86,7 @@ public static class Element {
   }
 
   private int getModulus(Generator type) {
-    switch (type) { 
+    switch (type) {
       case BAR:     return 2;
       case NODE:    return 3;
       case FACE:    return 5;
@@ -111,8 +111,8 @@ public static class Element {
    */
   private void applyMap() {
     if (! isInitialized()) { return; }
-   
-    // Now build the map 
+
+    // Now build the map
     real_map = new int[steps.length][nodes.length];
     for (int s = 0; s < steps.length; s++) {
       real_map[s] = sym.P(base_map, steps[s]);
@@ -157,7 +157,7 @@ public static class Element {
     }
     return this.setStep(newSteps);
   }
-  
+
   public Element setStep(int step) {
     return this.setStep(new int[]{step});
   }
@@ -167,7 +167,7 @@ public static class Element {
       this.steps[i] %= this.modulus;
     }
     applyMap();
-    return this; 
+    return this;
   }
 
   /**
@@ -179,7 +179,7 @@ public static class Element {
 
 
   /**
-   * Combine steps from another compatible element. 
+   * Combine steps from another compatible element.
    */
   public Element combine(Element elem) {
     for (int i = 0; i < elem.steps.length; i++) {
@@ -187,12 +187,12 @@ public static class Element {
     }
     return this;
   }
-  
+
 
   /**
    * Test various types of element equality. Compatible elements map to the
    * same fundamental symmetry operation, i.e. rotation around a specific
-   * face. 
+   * face.
    */
   public boolean isCompatible(Element elem) {
     // Must be same Generator
@@ -200,7 +200,7 @@ public static class Element {
 
     // Reference nodes must match
     // TODO: Ultimately they don't have to match order, but fixing that
-    // requires some fancy comparison testing. Hopefully not too 
+    // requires some fancy comparison testing. Hopefully not too
     // inconvenient in practice.
     if (this.nodes.length != elem.nodes.length) { return false; }
     for (int i = 0; i < this.nodes.length; i++) {
@@ -232,7 +232,7 @@ public static class Symmetry {
   private final int[] xB; // Rotation 180 deg about Bar
   private final int[] xF; // Rotation  72 deg about Face
   private final int[] xI; // Inversion
-  
+
   private final int[][] xX; // Arbitrary, computed from above
 
 
@@ -241,7 +241,7 @@ public static class Symmetry {
    */
   public int[] template;
   //public final List<Integer> template;
-  
+
   /**
    * Current symmetry state. Updated as new symmetry elements are added.
    */
@@ -260,7 +260,7 @@ public static class Symmetry {
   // Record if any elements have changed, so can rebuild before drawing.
   private boolean changed = false;
 
-  
+
 
 
 
@@ -277,8 +277,8 @@ public static class Symmetry {
     this.points = model.points;
     this.template = new int[model.points.length];
     //this.template = new ArrayList<LXColor>(model.points.length);
-   
-    // Populate all the symmetry operations 
+
+    // Populate all the symmetry operations
     this.ID = new int[nodes.length];
     for (int i = 0; i<nodes.length; i++) { ID[i] = i; }
     //if (nodes.length == 20) {
@@ -286,22 +286,22 @@ public static class Symmetry {
 
 
       // Inversion about the origin (anti-chiral)
-      this.xI = new int[] { 17, 18, 19, 15, 16, 
-                            12, 13, 14, 10, 11, 
-                             8,  9,  5,  6,  7, 
+      this.xI = new int[] { 17, 18, 19, 15, 16,
+                            12, 13, 14, 10, 11,
+                             8,  9,  5,  6,  7,
                              3,  4,  0,  1,  2};
 
       // Rotation 180 degrees about the bar/edge (0,1)
-      this.xB = new int[] { 1,  0,  5, 10,  6,  
+      this.xB = new int[] { 1,  0,  5, 10,  6,
                             2,  4, 14, 15, 11,
                             3,  9, 19, 16,  7,
                             8, 13, 18, 17, 12};
 
 
       // Rotation cc-wise of the face (0,1,2,3,4)
-      this.xF = new int[] {  1,  2,  3,  4,  0, 
-                             6,  7,  8,  9,  5, 
-                            11, 12, 13, 14, 10, 
+      this.xF = new int[] {  1,  2,  3,  4,  0,
+                             6,  7,  8,  9,  5,
+                            11, 12, 13, 14, 10,
                             16, 17, 18, 19, 15};
 
       // Rotation cc-wise around the node/vertex 0
@@ -324,7 +324,7 @@ public static class Symmetry {
         M(xF, M(xB, P(xF, 4))),
         M(P(xF,2), M(xB, P(xF, 4))),
         M(P(xF,3), M(xB, P(xF, 4))),
-        
+
         M(xB, P(xF, 3)),
         M(xF, M(xB, P(xF, 3))),
         M(P(xF,2), M(xB, P(xF,3))),
@@ -339,16 +339,16 @@ public static class Symmetry {
       };
 
 
-    //} else { 
+    //} else {
     //  this.kind = Kind.TETRAHEDRAL;
     //}
     //
 
     initializeCache();
-    
+
   }
 
-  
+
 
 
 
@@ -401,7 +401,7 @@ public static class Symmetry {
   }
 
   /**
-   * Conugate h with g. 
+   * Conugate h with g.
    */
 
   private int[] conjugate(int[] g, int[] h) {
@@ -433,7 +433,7 @@ public static class Symmetry {
     symmetries = 1;
     clear();
   }
-    
+
 
   private void initializeCache() {
     resetState();
@@ -461,24 +461,24 @@ public static class Symmetry {
    * Add a new element, possibly combining with the previous element.
    */
   private void addElement(Element elem) {
-   
+
     // TODO: If elem == elements[-1], pop the last element and combine it
     // with the new one.
-   
-    boolean reduced = false; 
+
+    boolean reduced = false;
     if (elements.size() > 0) {
       Element last = elements.get(elements.size()-1);
       if (last.isCompatible(elem)) {
         last.combine(elem);
         reduced = true;
       }
-      out("Combined Symmetry Element #%d: %s/%d %s Step %s\n", 
+      out("Combined Symmetry Element #%d: %s/%d %s Step %s\n",
         elements.size(), last.type, last.modulus, Arrays.toString(last.nodes),
         Arrays.toString(last.steps));
     }
 
     if (!reduced) {
-      out("Added Symmetry Element #%d: %s/%d %s Step %s\n", 
+      out("Added Symmetry Element #%d: %s/%d %s Step %s\n",
         elements.size(), elem.type, elem.modulus, Arrays.toString(elem.nodes),
         Arrays.toString(elem.steps));
       elements.add(elem);
@@ -496,10 +496,10 @@ public static class Symmetry {
     boolean[][] seen = new boolean[nodes.length][nodes.length];
     int n1, n2;
     List<int[]> good = new ArrayList<int[]>();
-    for (int[] map : xNodes) { 
+    for (int[] map : xNodes) {
       n1 = map[0];
       n2 = map[1];
-      if (seen[n1][n2]) { 
+      if (seen[n1][n2]) {
         continue;
       } else {
         seen[n1][n2] = true;
@@ -528,12 +528,12 @@ public static class Symmetry {
       xNodes = newMap;
       reduce();
     }
-      
+
     symmetries = xNodes.size();
     changed = false;
     out("--Rebuild Completed. %d elements. %d symmetries\n", elements.size(), symmetries);
   }
-    
+
 
 
   //****************************************************** SYMMETRY OPERATIONS
@@ -563,7 +563,7 @@ public static class Symmetry {
   public Element rotateBar(int n1, int n2, int step) {
     return rotateBar(n1, n2, new int[]{step});
   }
-  
+
   public Element rotateBar(int n1, int n2, int[] steps) {
     Element elem = new Element(Generator.BAR, new int[]{n1,n2}, steps)
                        .setModel(model)
@@ -593,7 +593,7 @@ public static class Symmetry {
   public Element rotateFace(int n1, int n2, int step) {
     return rotateFace(n1, n2, new int[]{step});
   }
-  
+
   public Element rotateFace(int n1, int n2, int[] steps) {
     Element elem = new Element(Generator.FACE, new int[]{n1,n2}, steps)
                        .setModel(model)
@@ -630,7 +630,7 @@ public static class Symmetry {
   public Element rotateNode(int n, int step) {
     return rotateNode(n, new int[]{step});
   }
-  
+
   public Element rotateNode(int n, int[] steps) {
     Element elem = new Element(Generator.NODE, new int[]{n}, steps)
                        .setModel(model)
@@ -640,7 +640,7 @@ public static class Symmetry {
     addElement(elem);
     return elem;
   }
-  
+
 
   //********************************************************* QUERY SYMMETRIES
 
@@ -656,7 +656,7 @@ public static class Symmetry {
     //out("  Ref Bar    [%2d][%2d]\n", refBar.node1.index, refBar.node2.index);
     Node[] symNodes1 = getSymmetricNodes(refBar.node1);
     Node[] symNodes2 = getSymmetricNodes(refBar.node2);
-    
+
     Bar[] symBars = new Bar[symmetries];
     Bar symBar;
     for (int i = 0; i < symmetries; i++) {
@@ -704,7 +704,7 @@ public static class Symmetry {
       int[] indexes = refBar.getPointIndexes();
       Bar[] symBars = getSymmetricBars(refBar);
       int refPoint, symPoint;
-      
+
       for (int i = 0; i < indexes.length; i++) {
         refPoint = indexes[i];
         if (template[indexes[i]] != 0) {

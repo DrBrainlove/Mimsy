@@ -42,8 +42,6 @@ public abstract class GraphPattern extends LXPattern {
 //*********************************************************** SYMMETRY PATTERN
 
 
-
-
 public class SymmetryPattern extends GraphPattern {
 
   /*
@@ -371,7 +369,7 @@ public class TetraSpin extends GraphPattern {
     addParameter(rotateSpeed);
     addParameter(colorAttk);
     addParameter(colorFade);
-    
+
     //for (GraphModel g: model.tetraL.subGraphs) { tetrahedra.add(g); }
     //for (GraphModel g: model.tetraR.subGraphs) { tetrahedra.add(g); }
   }
@@ -518,7 +516,7 @@ public class TetraSymmetryFace extends GraphPattern {
  * - Fireworks (explosion of them coming out of one point)
  * - Multiple colors (maybe just a few in a different color)
  *
- * @author Geoff Schmiddt
+ * @author Geoff Schmidt
  *
  * @author Mike Pesavento, adding EEG mapping to parameters, heavy edits
  ************************************************************************* **/
@@ -550,6 +548,8 @@ public class PixiePattern extends GraphPattern {
       // Nothing to do in here, just a holder for attributes
     }
   }
+
+  // the list of active particles
   private ArrayList<Pixie> pixies = new ArrayList<Pixie>();
 
   public PixiePattern(LX lx) {
@@ -658,6 +658,218 @@ public class PixiePattern extends GraphPattern {
     }
   }
 }
+
+
+
+
+/** ********************************************************************
+ * Muse bandwidth energy pattern
+ *
+ * Does variation of Pixies pattern, with multiple layers.
+ * Each Pixie layer represents a different EEG bandwidth energy,
+ * eg alpha, beta, gamma, delta, theta.
+ * The speed of the particle along a line varies with the amplitude
+ * of the energy in the associated bandwidth. When there is high alpha,
+ * the alpha particles (orange) will move faster.
+
+ * @author Mike Pesavento
+ *
+ * Requires use of the muse_connect.pde file, which gives access to the muse headset data
+ * Needs boolean museEnabled to be declared globall.
+ * Needs global object variable `MuseConnect muse` to be declared to access it in this pattern.
+ *
+ * To connect Muse EEG headset via bluetooth, follow instructions in MuseConnect.pde
+ * Run "muse-io' from command prompt, eg
+ *    muse-io --preset 14 --osc osc.udp://localhost:5000
+ *
+ */
+
+public class EEGBandwidthParticlesPattern extends GraphPattern {
+
+  // How many pixies are zipping around.
+  private final BoundedParameter numPixies = new BoundedParameter("NUM", 50, 0, 400);
+
+  // How fast each pixie moves, in pixels per second.
+  private final BoundedParameter globalSpeed = new BoundedParameter("SPD", 0.5, 0.1, 2.0);
+  // How long the trails persist. (Decay factor/percent for the trails, updated each frame.)
+  private final BoundedParameter fade = new BoundedParameter("FADE", 0.97, 0.8, 0.99);
+    // Brightness adjustment factor.
+  private final BoundedParameter brightness = new BoundedParameter("BRITE", 1.5, .25, 2.0);
+
+  // speed will be manually set, in pixels per second.
+  // Typical range= 10-1000, good starting value might be 60 (about a bar a second)
+
+  private final BoundedParameter gammaScale = new BoundedParameter("gamma", 0.27, 0, 1.0);
+  private final BoundedParameter betaScale = new BoundedParameter("beta", 0.6, 0, 1.0);
+  private final BoundedParameter alphaScale = new BoundedParameter("alpha", 0.3, 0, 1.0);
+  private final BoundedParameter thetaScale = new BoundedParameter("theta", 0.25, 0, 1.0);
+  private final BoundedParameter deltaScale = new BoundedParameter("delta", 0.25, 0, 1.0);
+
+
+  public EEGBandwidthParticlesPattern(LX lx) {
+    super(lx);
+    addParameter(numPixies);
+    addParameter(brightness);
+    addParameter(fade);
+    addParameter(globalSpeed);
+    addParameter(gammaScale);
+    addParameter(betaScale);
+    addParameter(alphaScale);
+    addParameter(thetaScale);
+    addParameter(deltaScale);
+
+    // a good colormap to use is from the ColorBrewer palette, 5-class "Spectral"
+    // RGB values: red (215, 25, 28), orange (253, 174,97), yellow (255,255,191), green (135,206,125), blue (43,131,186)
+    // HSV values:     (359, 88, 84),         (30, 62, 99),        (60, 25, 100),       (113, 45, 65),      (203, 77, 73)
+    addLayer(new PixiePattern(lx, 4, gammaScale, lx.hsb(60, 25, 100), 20)); // yellow
+    addLayer(new PixiePattern(lx, 3, betaScale, lx.hsb(359, 82, 84), 20)); //red
+    addLayer(new PixiePattern(lx, 2, alphaScale, lx.hsb(30, 82, 99), 20)); //orange
+    addLayer(new PixiePattern(lx, 1, thetaScale, lx.hsb(113, 45, 65), 20)); //green
+    addLayer(new PixiePattern(lx, 0, deltaScale, lx.hsb(203, 82, 73), 20)); //blue
+  }
+
+  public float getMuseSessionScore(int bandID) {
+    switch (bandID) {
+    case 0: // delta (2-6 Hz)
+      return muse.averageTemporal(muse.delta_session);
+    case 1: // theta (4-8 Hz)
+      return muse.averageTemporal(muse.theta_session);
+    case 2: // alpha (8-12 Hz)
+      return muse.averageTemporal(muse.alpha_session);
+    case 3: // beta (14-26 Hz)
+      return muse.averageTemporal(muse.beta_session);
+    case 4: // gamma (26-40 Hz)
+      //println(muse.averageTemporal(muse.gamma_session));
+      return muse.averageTemporal(muse.gamma_session);
+    }
+    return -1; // somehow not getting where we need to be
+  }
+
+  public void run(double deltaMs) {
+    // the layers run themselves
+  }
+
+  // pixie concept borrowed from Geoff Schmidt's Pixie Pattern
+  public class PixiePattern extends LXLayer {
+    GraphModel model;
+
+    public int bandID;
+    public BoundedParameter bandEnergy;
+    public int pixieColor = lx.hsb(0, 0, 100); // basic color for this instance of the pattern, matches bandwidth energy
+    public float speed; // controls speed of particles, roughly in pixels/sec
+
+    private class Pixie {
+      public Node fromNode, toNode;
+      public double offset = 0;  // explicitly init to zero
+      public int pixieColor;
+
+      public Pixie() {
+      }
+    }
+
+    // the list of active particles
+    private ArrayList<Pixie> pixies = new ArrayList<Pixie>();
+
+    public PixiePattern(LX lx, int bandID, BoundedParameter bandEnergy, int pixieColor, float speed) {
+      super(lx);
+      this.model = (GraphModel) lx.model;
+
+      this.bandID = bandID;
+      this.bandEnergy = bandEnergy;
+      // addParameter(bandEnergy);
+      this.pixieColor = pixieColor;
+      this.speed = speed;
+    }
+
+    public void setPixieCount(int count) {
+      while (this.pixies.size() < count) {
+        Pixie p = new Pixie();
+        p.fromNode = model.getRandomNode();
+        p.toNode = model.getRandomNode(p.fromNode);
+        p.pixieColor = this.pixieColor;
+        // add a noisy base speed here?
+        this.pixies.add(p);
+      }
+      // if we have too many pixies in the list, take them off of the end of the list, FILO
+      if (this.pixies.size() > count) {
+        this.pixies.subList(count, this.pixies.size()).clear();
+      }
+    }
+    public float scalePixieSpeed(float bandEnergy) {
+      // speeds go between 10 and 1000 px/sec
+      // muse session values go between 0.0 - 1.0
+      // so let's linearly bandEnergy between them
+      float speed = map(bandEnergy, 0.0, 1.0, 10.0, 300.0);
+      return speed * globalSpeed.getValuef();
+    }
+
+    public void run(double deltaMs) {
+      this.setPixieCount(Math.round(numPixies.getValuef()));
+
+      float speedRate = 0;
+      // ***** HERE is the magical muse line
+      // This boolean comes from a global variable, set in Internals.pde
+      if (museEnabled) {
+        //println("*** Muse Activated!!!");
+        //pixieScale = bandEnergy.getValuef() * MAX_PIXIES;
+        // pixieScale = getMuseSessionScore(this.bandID) * MAX_MUSE_PIXIES;
+        speedRate = scalePixieSpeed(getMuseSessionScore(this.bandID));
+      }
+      else {
+        // speedRate = bandEnergy.getValuef() * MAX_PIXIES;
+        speedRate = scalePixieSpeed(bandEnergy.getValuef());
+      }
+
+      for (LXPoint p : model.points) {
+        colors[p.index] = LXColor.scaleBrightness(colors[p.index], fade.getValuef());
+      }
+
+      for (Pixie p : this.pixies) {
+        double drawOffset = p.offset;
+        p.offset += (deltaMs / 1000.0) * speedRate;
+
+        while (drawOffset < p.offset) {
+          // List<LXPoint> points = nodeToNodePoints(p.fromNode, p.toNode);
+          Bar bar = model.getBar(p.fromNode, p.toNode);
+          LXPoint[] points = bar.points;
+
+          int index = (int)Math.floor(drawOffset);
+          if (index >= points.length) {
+            //swap nodes to find new direction
+            Node oldFromNode = p.fromNode;
+            p.fromNode = p.toNode;
+            do {
+              p.toNode = model.getRandomNode(p.fromNode);
+            }
+            while (model.getNodeAngle(oldFromNode, p.fromNode, p.toNode)
+              < 4*PI/360*3 ); // don't go back the way we came
+            drawOffset -= points.length;
+            p.offset -= points.length;
+            continue;
+          }
+          // How long, notionally, was the pixie at this pixel during
+          // this frame? If we are moving at 100 pixels per second, say,
+          // then timeHereMs will add up to 1/100th of a second for each
+          // pixel in the pixie's path, possibly accumulated over
+          // multiple frames.
+          double end = Math.min(p.offset, Math.ceil(drawOffset + .000000001));
+          double timeHereMs = (end - drawOffset) / speedRate * 1000.0;
+
+          LXPoint here = points[(int)Math.floor(drawOffset)];
+          //        System.out.format("%.2fms at offset %d\n", timeHereMs, (int)Math.floor(drawOffset));
+
+          addColor(here.index,
+              LXColor.scaleBrightness(
+                p.pixieColor,
+                (float)timeHereMs / 1000.0
+                  * speedRate
+                  * brightness.getValuef()));
+          drawOffset = end;
+        }
+      }
+    } // end run
+  } //end PixiePattern
+} //end EEGBandwidthParticlesPattern
 
 
 

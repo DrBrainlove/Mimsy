@@ -2,7 +2,7 @@
 *
 * MuseConnect
 *
-* author: Michael J. Pesavento, Ph.D.
+* @author: Michael J. Pesavento, Ph.D.
 *         PezTek
 *         mike@peztek.com
 *
@@ -23,8 +23,11 @@
 * Requirements:
 * requires oscP5 library package for Processing 3
 *
-* need to have muse-io installed, get SDK from here:
+* Need to have muse-io installed, get SDK from here:
 * https://sites.google.com/a/interaxon.ca/muse-developer-site/download
+* Update: package is no longer available on muse website
+
+* Connect the muse device to controlling computer via bluetooth
 *
 * load muse OSC output in command line with:
 *      muse-io --preset 14 --osc osc.udp://localhost:5000

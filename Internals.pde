@@ -43,7 +43,6 @@ UI3dComponent uiNodes;
 
 // define Muse globals
 UIMuseControl uiMuseControl;
-// UIMuseHUD uiMuseHUD;
 MuseConnect muse;
 MuseHUD museHUD;
 int MUSE_OSCPORT = 5000;
@@ -91,7 +90,7 @@ void setup() {
   out("Added Muse OSC parser and HUD");
 
 
-   try {
+  try {
     lx = new LXStudio(this, model, false) {
       public void initialize(LXStudio lx, LXStudio.UI ui) {
         //lx.engine.registerComponent("tenereSettings", new Settings(lx, ui));
@@ -108,29 +107,29 @@ void setup() {
 
         // Unexpectedly, the default Left Handed coordinate system works
         //ui.setCoordinateSystem(UI.CoordinateSystem.RIGHT_HANDED);
-      
-        // Add Components to 3D Simulation 
+
+        // Add Components to 3D Simulation
         ui.preview.addComponent(uiNodes = new UINodes());
         ui.preview.addComponent(uiBarsDD = new UIBars(((GraphModel)model).getLayer(DD)));
         ui.preview.addComponent(uiBarsTL = new UIBars(((GraphModel)model).getLayer(TL)));
         ui.preview.addComponent(uiBarsTR = new UIBars(((GraphModel)model).getLayer(TR)));
         ui.preview.pointCloud.setPointSize(2.0).setVisible(true);
-       
-       
+
+
         // Add Control Pannels to Left UI Pannel
         ui.leftPane.engine.setVisible(true);
-        
+
         uiMimsyControls = (UIMimsyControls) new UIMimsyControls(ui)
           .setExpanded(false)
           .addToContainer(ui.leftPane.global);
-        uiMimsyCamera = (UIMimsyCamera) new UIMimsyCamera(ui) 
+        uiMimsyCamera = (UIMimsyCamera) new UIMimsyCamera(ui)
           .setExpanded(false)
           .addToContainer(ui.leftPane.global);
-        
+
         // add Muse UI components
         uiMuseControl = (UIMuseControl) new UIMuseControl(ui, muse, museHUD)
           .setExpanded(false)
-          .addToContainer(ui.leftPane.global);        
+          .addToContainer(ui.leftPane.global);
 
        // uiTreeControls = (UITreeControls) new UITreeControls(ui).addToContainer(ui.leftPane.global);
         out("Initialized LX UI");
@@ -139,7 +138,6 @@ void setup() {
   } catch (Exception x) {
     x.printStackTrace();
   }
-  //end from tenere
 
 
   //=================================================================== Engine
@@ -163,7 +161,7 @@ void setup() {
 
   //==================================================== Output to Controllers
   // create outputs via CortexOutput
-  
+
   // Use multi-threading for network output
   if (OUTPUT) {
     mimsyMap.buildChannelMap(model);

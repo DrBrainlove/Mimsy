@@ -34,7 +34,7 @@ static class MimsyMap {
   int barsTR[][] = new int[30][2];
   int barsDD[][] = new int[30][2];
 
-  
+
   ArrayList<Bar[]> barMap = new ArrayList<Bar[]>();
   ArrayList<int[]> pixelMap = new ArrayList<int[]>();
 
@@ -82,13 +82,13 @@ static class MimsyMap {
    * Build graphs based on Dodecahedral subNet geometries
    **/
 
-  public GraphModel buildCompound( Node[] nodes, 
-                                  Dodecahedron.Net net, 
+  public GraphModel buildCompound( Node[] nodes,
+                                  Dodecahedron.Net net,
                                   int[][] ordering,
                                   String layer) {
     GraphModel[] compound = new GraphModel[net.subnets];
     for (int t = 0; t < net.subnets; t++) {
-      //System.out.format(" !! Creating TetraR %d\n", t);  
+      //System.out.format(" !! Creating TetraR %d\n", t);
       Node[] pg_nodes = new Node[net.nodes[t].length];
       for(int n = 0; n < net.nodes[t].length; n++) {
         pg_nodes[n] = nodes[net.nodes[t][n]];
@@ -133,9 +133,9 @@ static class MimsyMap {
    * ************************************************************************/
 
   public GraphModel buildModelMiniMim() {
-  
+
     // create the dodecahedral bar mapping
-    for (int c = 0; c < 5; c++) { 
+    for (int c = 0; c < 5; c++) {
       int[][] bars = new int[][] {
         {  0 + c,        0 + (c+1)%5 },
         {  0 + (c+1)%5,  5 + (c+1)%5 },
@@ -151,7 +151,7 @@ static class MimsyMap {
     }
 
 
-    int[][] TETRAHEDRON_BAR_ORDER = 
+    int[][] TETRAHEDRON_BAR_ORDER =
       new int[][] {
         {0,1},{1,2},
         {2,3},{3,1},
@@ -186,8 +186,8 @@ static class MimsyMap {
       out("BUILDING COMPOUND TETRAHEDRA LEFT (INNER %d LEDs/Bar)\n", pixelsTL);
       PIXELS_PER_BAR = pixelsTL;
       tetraLCompound = buildCompound(
-          nodes, 
-          dd.tetraLNet, 
+          nodes,
+          dd.tetraLNet,
           TETRAHEDRON_BAR_ORDER,
           TL);
     }
@@ -196,13 +196,13 @@ static class MimsyMap {
       out("BUILDING COMPOUND TETRAHEDRA RIGHT (OUTER %d LEDs/Bar)\n", pixelsTR);
       PIXELS_PER_BAR = pixelsTR;
       tetraRCompound = buildCompound(
-          nodes, 
-          dd.tetraRNet, 
+          nodes,
+          dd.tetraRNet,
           TETRAHEDRON_BAR_ORDER,
           TR);
     }
 
-    return new GraphModel(nodes, 
+    return new GraphModel(nodes,
       new GraphModel[]{dodecahedron, tetraLCompound, tetraRCompound})
       .setLayer("Mimsy");
   }
@@ -212,9 +212,9 @@ static class MimsyMap {
    **************************************************************************/
 
   public GraphModel buildModelArtCar() {
-  
+
     // create the dodecahedral bar mapping
-    for (int c = 0; c < 5; c++) { 
+    for (int c = 0; c < 5; c++) {
       int[][] bars = new int[][] {
         {  0 + c,        0 + (c+1)%5 },
         {  0 + (c+1)%5,  5 + (c+1)%5 },
@@ -230,7 +230,7 @@ static class MimsyMap {
     }
 
 
-    int[][] TETRAHEDRON_BAR_ORDER = 
+    int[][] TETRAHEDRON_BAR_ORDER =
       new int[][] {
         {0,3},{3,1},
         {0,2},{2,3},
@@ -265,8 +265,8 @@ static class MimsyMap {
       out("BUILDING COMPOUND TETRAHEDRA LEFT (INNER %d LEDs/Bar)\n", pixelsTL);
       PIXELS_PER_BAR = pixelsTL;
       tetraLCompound = buildCompound(
-          nodes, 
-          dd.tetraLNet, 
+          nodes,
+          dd.tetraLNet,
           TETRAHEDRON_BAR_ORDER,
           TL);
     }
@@ -275,13 +275,13 @@ static class MimsyMap {
       out("BUILDING COMPOUND TETRAHEDRA RIGHT (OUTER %d LEDs/Bar)\n", pixelsTR);
       PIXELS_PER_BAR = pixelsTR;
       tetraRCompound = buildCompound(
-          nodes, 
-          dd.tetraRNet, 
+          nodes,
+          dd.tetraRNet,
           TETRAHEDRON_BAR_ORDER,
           TR);
     }
 
-    return new GraphModel(nodes, 
+    return new GraphModel(nodes,
       new GraphModel[]{dodecahedron, tetraLCompound, tetraRCompound})
       .setLayer("Mimsy");
   }
@@ -326,9 +326,9 @@ static class MimsyMap {
 
     Bar[] bars = new Bar[3];
 
-    
+
     for (int i = 0; i < 5; i++) {
-    
+
       //***** dodecahedral bars
       bars = new Bar[3];
       // bottom 3 bars
@@ -413,19 +413,19 @@ static class MimsyMap {
   /*
   static int nodes_face[][] = {
     {0,1,2,3,4},
-  
+
     {0,1,6,10,5},
     {1,2,7,11,6},
     {2,3,8,12,7},
     {3,4,9,13,8},
     {4,0,5,14,9},
-  
+
     {15,16,11,6,10},
     {16,17,12,7,11},
     {17,18,13,8,12},
     {18,19,14,9,13},
     {19,15,10,5,14},
-    
+
     {15,16,17,18,19},
   };
 

@@ -312,7 +312,7 @@ public class RainbowBarrelRoll extends LXPattern {
 
 
 /** ************************************************************* BLEND KERNEL
- * 
+ *
  ************************************************************************* **/
 
 public static void blendKernel(LXModel model, int[] colors) {
@@ -352,7 +352,7 @@ public static void blendKernel(LXModel model, int[] colors) {
         div += d;
       if (debug) {   out("  [%dj][%dk]: %3dc  %3dk  %3dr  %3ds  %3dd  \n",
             j, k, v, s, d, sum, div); }
-            
+
       }
       newRGB[c] = (int)Math.floor((float)sum / (float)div);
       if (debug) { out("Final: %3d\n\n", newRGB[c]);}
@@ -360,7 +360,7 @@ public static void blendKernel(LXModel model, int[] colors) {
     colors[i] = LXColor.rgb(newRGB[0], newRGB[1], newRGB[2]);
     if (debug) { out("Color: %x\n\n", colors[i]); }
   }
-} 
+}
 
 /** ************************************************************ CIRCLE BOUNCE
  * A plane bounces up and down the brain, making a circle of color.
@@ -376,9 +376,9 @@ public class CircleBounce extends LXPattern {
       = new CompoundParameter("Extend", 1.0, 0.0, 2.0);
   private final CompoundParameter rotateSpeed
       = new CompoundParameter("Spin", 1.0, 0.0, 10.0);
-  private final CompoundParameter bounceSpeed 
+  private final CompoundParameter bounceSpeed
       = new CompoundParameter("Bounce",  10000, 0, 100000);
-  private final CompoundParameter colorSpread 
+  private final CompoundParameter colorSpread
       = new CompoundParameter("Color", 5.0, 0.0, 360.0);
   private final CompoundParameter circleWidth
       = new CompoundParameter("Width", 1, 0.0, 10.0);
@@ -411,7 +411,7 @@ public class CircleBounce extends LXPattern {
       //colors[p.index] = LXColor.BLACK;
       colors[p.index] = LXColor.scaleBrightness(colors[p.index], colorFade.getValuef());
       float b = LXColor.b(colors[p.index]);
-      if (b < 10.0) { 
+      if (b < 10.0) {
         colors[p.index] = LXColor.BLACK;
       }
     }
@@ -419,7 +419,7 @@ public class CircleBounce extends LXPattern {
 
   public class CircleLayer extends LXLayer {
     int index = 0;
-    private final SinLFO xPeriod 
+    private final SinLFO xPeriod
       = new SinLFO(-1.0, 1.0, bounceSpeed);
     LXProjection projection = new LXProjection(model);
 
@@ -428,7 +428,7 @@ public class CircleBounce extends LXPattern {
 
     private CircleLayer(LX lx, int i) {
       super(lx);
-      
+
       index = i;
       r = new Random();
       dx = r.nextFloat() / 1000.0;
@@ -436,7 +436,7 @@ public class CircleBounce extends LXPattern {
       dz = r.nextFloat() / 1000.0;
 
       addModulator(xPeriod.randomBasis()).start();
-      
+
       projection.rotateX(r.nextFloat() * 360.0);
       projection.rotateY(r.nextFloat() * 360.0);
       projection.rotateZ(r.nextFloat() * 360.0);
@@ -454,7 +454,7 @@ public class CircleBounce extends LXPattern {
       projection.rotateX(dx * (float)deltaMs * rotateSpeed.getValuef());
       projection.rotateY(dy * (float)deltaMs * rotateSpeed.getValuef());
       projection.rotateZ(dz * (float)deltaMs * rotateSpeed.getValuef());
-      
+
 
 
       float falloff = 5.0 / circleWidth.getValuef();
@@ -464,8 +464,8 @@ public class CircleBounce extends LXPattern {
         float brightness = max(0.0, 100.0 - falloff*distanceFromBrightness);
         if (brightness <= 0.0) { continue; }
         LXPoint p = new LXPoint(v.x, v.y, v.z);
-        colors[v.index] = 
-          LXColor.screen(colors[v.index], 
+        colors[v.index] =
+          LXColor.screen(colors[v.index],
                            LXColor.hsb(
                            palette.getHuef(p) + colorSpread.getValuef() * index,
                            100.0,
@@ -482,11 +482,11 @@ public class Orbiter {
     public final SinLFO xSlope = new SinLFO(-1, 1, startModulator(
       new SinLFO(78000, 104000, 17000).randomBasis()
     ));
-    
+
     public final SinLFO ySlope = new SinLFO(-1, 1, startModulator(
       new SinLFO(37000, 79000, 51000).randomBasis()
     ));
-    
+
     public final SinLFO zSlope = new SinLFO(-1, 1, startModulator(
       new SinLFO(47000, 91000, 53000).randomBasis()
     ));
@@ -496,7 +496,7 @@ public class Orbiter {
     public Orbiter(
 
     public void run(double deltaMs) {
-      
+
 
 
     }
@@ -506,15 +506,15 @@ public class Orbiter {
 
 
 public float getPlanePointDist(PVector origin,PVector normal,PVector pos){
- 
+
     PVector hypotenuse = PVector.sub(pos,origin);
     float c = hypotenuse.mag();
- 
+
     hypotenuse.normalize();
     normal.normalize();
- 
+
     float cos = PVector.dot(normal, hypotenuse);
- 
+
     return cos*c;
 }
 
@@ -713,7 +713,6 @@ public class MoireManifoldPattern extends LXPattern{
  *
  * @author Geoff Schmidt
  ************************************************************************* **/
-
 /*
 public class WaveFrontPattern extends LXPattern {
   // Number of splats
