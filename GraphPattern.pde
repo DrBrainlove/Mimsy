@@ -868,7 +868,8 @@ public class EEGBandwidthParticlesPattern extends GraphPattern {
 
 /** ************************************************************
  *  Make the dodecahedron twinkle
- *  play with the shapes
+ *  The L tetrahedra spin and rotate
+ *
  * @author Mike Pesavento
  *
  */
@@ -916,18 +917,7 @@ public class DDTwinkle extends GraphPattern {
   public void run(double deltaMs) {
     // ----
     // Dodecahedron
-    GraphModel dodecahedron;
-    dodecahedron = model.getLayer(DD);
-    float ddFade = 1.0 - (fadeRate.getValuef() * (float)deltaMs / 1000.0);
-    fade(dodecahedron.points, ddFade);
-
-    ArrayList<LXPoint> twinklePoints = dodecahedron
-        .getRandomPoints((int)rate.getValuef());
-    for(LXPoint p: twinklePoints) {
-      int hueShift = rand.nextInt((int)hueWidth.getValuef());
-      float curHue = (hue.getValuef() + hueShift - hueShift / 2) % 360;
-      colors[p.index] = lx.hsb(curHue, 100, 100);
-    }
+    updateDodecahedron(deltaMs);
 
     // ----
     // Tetrahedra, L
@@ -940,35 +930,47 @@ public class DDTwinkle extends GraphPattern {
     // Track elapsed periods
     tetraPeriod = 1000.0 / rotateSpeed.getValuef();
     tetraElapsed += (float)deltaMs;
+    // switch to a new tetrahedra if it's time
     if (tetraElapsed >= tetraPeriod) {
       tetraElapsed = 0.0;
-      // tetraIndex = (tetraIndex + (int)Math.floor(rand.nextFloat() * 4.0)) % 5;
-
-      tetraIndex = (tetraIndex + 1) % 5;
+      tetraIndex = (tetraIndex + (int)Math.floor(rand.nextFloat() * 4.0)) % 5;
+      //tetraIndex = (tetraIndex + 1) % 5;
 
     }
-    // Fade to Black
-    // float fadeVal = 1.0 - (((float)deltaMs/tetraPeriod) * colorFadeTetra.getValuef());
     float attkVal = (tetraElapsed/tetraPeriod) / colorAttkTetra.getValuef() * 100.0;
+    this.colorTetraBars(tetra, attkVal);
 
+  }
 
+  private void colorTetraBars(GraphModel tetra, float attackVal) {
+    // Given a tetrahedra, color all the bars in some clever way
     Bar bar0 = tetra.bars[0];
     float hue = 0.0;
     float sat = 100.0;
-    float brt = min(100.0, attkVal);
+    float brt = min(100.0, attackVal);
 
-    for (int b = 0; b < tetra.bars.length; b++) {
+    for (int b=0; b < tetra.bars.length; b++) {
       Bar bar = tetra.bars[b];
       for (LXPoint p: bar.points) {
         hue = (float)palette.getHue(p);
         colors[p.index] = LXColor.lightest(colors[p.index], LXColor.hsb(hue, sat, brt));
       }
     }
-
-
-
-
   }
 
+  private void updateDodecahedron(double deltaMs){
+    GraphModel dodecahedron;
+    dodecahedron = model.getLayer(DD);
+    float ddFade = 1.0 - (fadeRate.getValuef() * (float)deltaMs / 1000.0);
+    fade(dodecahedron.points, ddFade);
+
+    ArrayList<LXPoint> twinklePoints = dodecahedron
+        .getRandomPoints((int)rate.getValuef());
+    for(LXPoint p: twinklePoints) {
+      int hueShift = rand.nextInt((int)hueWidth.getValuef());
+      float curHue = (hue.getValuef() + hueShift - hueShift / 2) % 360;
+      colors[p.index] = lx.hsb(curHue, 100, 100);
+    }
+  }
 }
 
