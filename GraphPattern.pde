@@ -882,25 +882,24 @@ public class DDTwinkle extends GraphPattern {
     new BoundedParameter("HUEW", 40, 0, 360);
 
   private final BoundedParameter fadeRate =
-    new BoundedParameter("FADE", 1.75, 0.001, 5.0);
+    new BoundedParameter("DDFADE", 1.75, 0.001, 5.0);
 
 
   private final CompoundParameter colorAttkTetra
-      = new CompoundParameter("TAttk", 1.0, 0.0, 2.0);
+      = new CompoundParameter("TAttk", 0.92, 0.0, 2.0);
   private final CompoundParameter colorFadeTetra
-      = new CompoundParameter("TFade", 1.0, 0.0, 10.0);
+      = new CompoundParameter("TFade", 2.9, 0.0, 10.0);
 
 
   // rotations per second
   private final CompoundParameter rotateSpeed
-      = new CompoundParameter("Spin", 4.0, 0.0, 10.0);
+      = new CompoundParameter("TSpin", 2.5, 0.0, 10.0);
 
   Random rand = new Random();
 
   int tetraIndex = 0;
   float tetraElapsed = 0;
   float tetraPeriod = 100.0;
-  // float rotateSpeed = 4.0;
 
 
   public DDTwinkle(LX lx) {
@@ -932,27 +931,25 @@ public class DDTwinkle extends GraphPattern {
 
     // ----
     // Tetrahedra, L
+    //first, fade ALL tetrahedra, not just our current one
+    float tetraFadeVal = 1.0 - (colorFadeTetra.getValuef() * (float)deltaMs / 1000.0);
+    fade(model.getLayer(TL).points, tetraFadeVal);
+
     GraphModel tetra;
     tetra = model.getLayer(TL).getLayer(tetraIndex);
-
     // Track elapsed periods
     tetraPeriod = 1000.0 / rotateSpeed.getValuef();
     tetraElapsed += (float)deltaMs;
     if (tetraElapsed >= tetraPeriod) {
       tetraElapsed = 0.0;
-      // if (r.nextFloat() < 0.33) {
-      //   shell = !shell;
-      // } else {
-      //   // tetraIndex = (tetraIndex + (int)Math.floor(r.nextFloat() * 4.0)) % 5;
-      //   tetraIndex = (tetraIndex + 1) % 5;
-      // }
+      // tetraIndex = (tetraIndex + (int)Math.floor(rand.nextFloat() * 4.0)) % 5;
+
       tetraIndex = (tetraIndex + 1) % 5;
 
     }
     // Fade to Black
-    float fadeVal = 1.0 - (((float)deltaMs/tetraPeriod) * colorFadeTetra.getValuef());
-    float attkVal = tetraElapsed/tetraPeriod / colorAttkTetra.getValuef() * 100.0;
-    fade(tetra.points, fadeVal);
+    // float fadeVal = 1.0 - (((float)deltaMs/tetraPeriod) * colorFadeTetra.getValuef());
+    float attkVal = (tetraElapsed/tetraPeriod) / colorAttkTetra.getValuef() * 100.0;
 
 
     Bar bar0 = tetra.bars[0];
