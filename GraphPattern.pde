@@ -31,10 +31,6 @@ public abstract class GraphPattern extends LXPattern {
     }
   }
 
-
-
-
-
 }
 
 
@@ -660,8 +656,6 @@ public class PixiePattern extends GraphPattern {
 }
 
 
-
-
 /** ********************************************************************
  * Muse bandwidth energy pattern
  *
@@ -872,4 +866,111 @@ public class EEGBandwidthParticlesPattern extends GraphPattern {
 } //end EEGBandwidthParticlesPattern
 
 
+/** ************************************************************
+ *  Make the dodecahedron twinkle
+ *  The L tetrahedra spin and rotate
+ *
+ * @author Mike Pesavento
+ *
+ */
+public class DDTwinkle extends GraphPattern {
+
+  private final BoundedParameter rate =
+      new BoundedParameter("RATE", 20.0, 1.0, 80.0);
+  private final BoundedParameter hue =
+    new BoundedParameter("HUE", 30, 0, 360);
+  private final BoundedParameter hueWidth =
+    new BoundedParameter("HUEW", 40, 0, 360);
+
+  private final BoundedParameter fadeRate =
+    new BoundedParameter("DDFADE", 1.75, 0.001, 5.0);
+
+
+  private final CompoundParameter colorAttkTetra
+      = new CompoundParameter("TAttk", 0.92, 0.0, 2.0);
+  private final CompoundParameter colorFadeTetra
+      = new CompoundParameter("TFade", 2.9, 0.0, 10.0);
+
+
+  // rotations per second
+  private final CompoundParameter rotateSpeed
+      = new CompoundParameter("TSpin", 2.5, 0.0, 10.0);
+
+  Random rand = new Random();
+
+  int tetraIndex = 0;
+  float tetraElapsed = 0;
+  float tetraPeriod = 100.0;
+
+
+  public DDTwinkle(LX lx) {
+    super(lx);
+    addParameter(rate);
+    addParameter(hue);
+    addParameter(hueWidth);
+    addParameter(fadeRate);
+    addParameter(colorAttkTetra);
+    addParameter(colorFadeTetra);
+    addParameter(rotateSpeed);
+  }
+
+  public void run(double deltaMs) {
+    // ----
+    // Dodecahedron
+    updateDodecahedron(deltaMs);
+
+    // ----
+    // Tetrahedra, L
+    //first, fade ALL tetrahedra, not just our current one
+    float tetraFadeVal = 1.0 - (colorFadeTetra.getValuef() * (float)deltaMs / 1000.0);
+    fade(model.getLayer(TL).points, tetraFadeVal);
+
+    GraphModel tetra;
+    tetra = model.getLayer(TL).getLayer(tetraIndex);
+    // Track elapsed periods
+    tetraPeriod = 1000.0 / rotateSpeed.getValuef();
+    tetraElapsed += (float)deltaMs;
+    // switch to a new tetrahedra if it's time
+    if (tetraElapsed >= tetraPeriod) {
+      tetraElapsed = 0.0;
+      tetraIndex = (tetraIndex + (int)Math.floor(rand.nextFloat() * 4.0)) % 5;
+      //tetraIndex = (tetraIndex + 1) % 5;
+
+    }
+    float attkVal = (tetraElapsed/tetraPeriod) / colorAttkTetra.getValuef() * 100.0;
+    this.colorTetraBars(tetra, attkVal);
+
+  }
+
+  private void colorTetraBars(GraphModel tetra, float attackVal) {
+    // Given a tetrahedra, color all the bars in some clever way
+    Bar bar0 = tetra.bars[0];
+    float hue = 0.0;
+    float sat = 100.0;
+    float brt = min(100.0, attackVal);
+
+    for (int b=0; b < tetra.bars.length; b++) {
+      Bar bar = tetra.bars[b];
+      for (LXPoint p: bar.points) {
+        hue = (float)palette.getHue(p);
+        colors[p.index] = LXColor.lightest(colors[p.index], LXColor.hsb(hue, sat, brt));
+      }
+    }
+  }
+
+  private void updateDodecahedron(double deltaMs){
+    GraphModel dodecahedron;
+    dodecahedron = model.getLayer(DD);
+    float ddFade = 1.0 - (fadeRate.getValuef() * (float)deltaMs / 1000.0);
+    fade(dodecahedron.points, ddFade);
+
+    ArrayList<LXPoint> twinklePoints = dodecahedron
+        .getRandomPoints((int)rate.getValuef());
+    for(LXPoint p: twinklePoints) {
+      int hueShift = rand.nextInt((int)hueWidth.getValuef());
+      float curHue = (hue.getValuef() + hueShift - hueShift / 2) % 360;
+      colors[p.index] = lx.hsb(curHue, 100, 100);
+    }
+  }
+}
 

@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "timestamp": 1523177694881,
+  "timestamp": 1565682842797,
   "engine": {
     "id": 1,
     "class": "heronarts.lx.LXEngine",
@@ -29,19 +29,19 @@
       "parameters": {
         "label": "",
         "cue": false,
-        "hueMode": 2,
-        "color/hue": 254.58824157714844,
+        "hueMode": 1,
+        "color/hue": 204.31600752272584,
         "color/brightness": 100.0,
         "color/saturation": 100.0,
-        "color": -12713729,
+        "color": -16738049,
         "period": 60000.0,
-        "range": 138.1395378112793,
-        "spread": 179.99999597668648,
+        "range": 221.8604621887207,
+        "spread": 71.99999839067459,
         "spreadX": 0.04000002145767212,
-        "spreadY": -0.019999977201223373,
+        "spreadY": 0.02000000700354576,
         "spreadZ": 2.2351741790771484E-8,
         "spreadR": 1.0,
-        "offsetX": 0.0,
+        "offsetX": -0.03999997675418854,
         "offsetY": 0.0,
         "offsetZ": 0.0,
         "mirror": false
@@ -70,7 +70,7 @@
         },
         "effects": [],
         "clips": [],
-        "patternIndex": 1,
+        "patternIndex": 11,
         "patterns": [
           {
             "id": 28,
@@ -266,6 +266,27 @@
               "triggers": []
             },
             "autoCycleEnabled": true
+          },
+          {
+            "id": 1545,
+            "class": "Mimsy$DDTwinkle",
+            "modulationColor": -9984,
+            "parameters": {
+              "label": "DDTwinkle",
+              "RATE": 30.70000154897571,
+              "HUE": 22.199999839067456,
+              "HUEW": 40.0,
+              "DDFADE": 1.75,
+              "TAttk": 0.880000002682209,
+              "TFade": 1.2999999932944772,
+              "TSpin": 2.5
+            },
+            "modulation": {
+              "modulators": [],
+              "modulations": [],
+              "triggers": []
+            },
+            "autoCycleEnabled": true
           }
         ]
       },
@@ -435,21 +456,21 @@
           "release": 100.0,
           "slope": 4.5,
           "Band-1": 0.0,
-          "Band-2": 0.11095971192158771,
-          "Band-3": 0.2043751056923675,
-          "Band-4": 0.29072624109842315,
-          "Band-5": 0.3046331453648716,
-          "Band-6": 0.2842009678051113,
-          "Band-7": 0.5844901398900768,
-          "Band-8": 0.6668898157335403,
-          "Band-9": 0.6036080234354186,
-          "Band-10": 0.1517967615153708,
-          "Band-11": 0.17022380205354504,
-          "Band-12": 0.21299294453774886,
-          "Band-13": 0.18346275380941324,
-          "Band-14": 0.1154803902208682,
-          "Band-15": 0.20743766766191174,
-          "Band-16": 0.20394153241728785
+          "Band-2": 0.0,
+          "Band-3": 0.0,
+          "Band-4": 0.0,
+          "Band-5": 0.0,
+          "Band-6": 0.04208951060923516,
+          "Band-7": 0.04707439997706997,
+          "Band-8": 0.0,
+          "Band-9": 0.0,
+          "Band-10": 0.0,
+          "Band-11": 0.0,
+          "Band-12": 0.0,
+          "Band-13": 0.0,
+          "Band-14": 0.0,
+          "Band-15": 0.0,
+          "Band-16": 0.0
         }
       },
       "input": {
@@ -509,7 +530,7 @@
             "minFreq": 0.0,
             "maxFreq": 143.0764923095703,
             "gate": false,
-            "average": 0.6975445688805756,
+            "average": 0.3233386347087467,
             "tap": false
           }
         },
@@ -529,10 +550,10 @@
             "threshold": 0.5241379320621491,
             "floor": 0.8318382134322648,
             "decay": 400.0,
-            "minFreq": 634.8571166992188,
+            "minFreq": 120.0,
             "maxFreq": 1776.185791015625,
             "gate": false,
-            "average": 0.9416400099309769,
+            "average": 0.10840135522165384,
             "tap": false
           }
         },
@@ -552,11 +573,239 @@
             "threshold": 0.6793103508651257,
             "floor": 0.8713150920436876,
             "decay": 400.0,
-            "minFreq": 6838.59130859375,
+            "minFreq": 120.0,
             "maxFreq": 22050.0,
             "gate": false,
-            "average": 0.8989251230003015,
+            "average": 0.40671980741592706,
             "tap": false
+          }
+        },
+        {
+          "id": 1693,
+          "class": "heronarts.lx.modulator.VariableLFO",
+          "modulationColor": -65398,
+          "parameters": {
+            "label": "LFO 1",
+            "running": true,
+            "trigger": false,
+            "loop": true,
+            "wave": 0,
+            "period": 1000.0,
+            "skew": 0.0,
+            "shape": 0.0,
+            "phase": 0.0,
+            "exp": 0.0
+          }
+        },
+        {
+          "id": 1694,
+          "class": "heronarts.lx.modulator.VariableLFO",
+          "modulationColor": -38400,
+          "parameters": {
+            "label": "LFO 2",
+            "running": true,
+            "trigger": false,
+            "loop": true,
+            "wave": 0,
+            "period": 1000.0,
+            "skew": 0.0,
+            "shape": 0.0,
+            "phase": 0.0,
+            "exp": 0.0
+          }
+        },
+        {
+          "id": 1695,
+          "class": "heronarts.lx.modulator.VariableLFO",
+          "modulationColor": -16711808,
+          "parameters": {
+            "label": "LFO 3",
+            "running": true,
+            "trigger": false,
+            "loop": true,
+            "wave": 0,
+            "period": 1000.0,
+            "skew": 0.0,
+            "shape": 0.0,
+            "phase": 0.0,
+            "exp": 0.0
+          }
+        },
+        {
+          "id": 1696,
+          "class": "heronarts.lx.modulator.VariableLFO",
+          "modulationColor": -16726017,
+          "parameters": {
+            "label": "LFO 4",
+            "running": true,
+            "trigger": false,
+            "loop": true,
+            "wave": 0,
+            "period": 1000.0,
+            "skew": 0.0,
+            "shape": 0.0,
+            "phase": 0.0,
+            "exp": 0.0
+          }
+        },
+        {
+          "id": 1697,
+          "class": "heronarts.lx.modulator.VariableLFO",
+          "modulationColor": -8960,
+          "parameters": {
+            "label": "LFO 5",
+            "running": true,
+            "trigger": false,
+            "loop": true,
+            "wave": 0,
+            "period": 1000.0,
+            "skew": 0.0,
+            "shape": 0.0,
+            "phase": 0.0,
+            "exp": 0.0
+          }
+        },
+        {
+          "id": 1698,
+          "class": "heronarts.lx.modulator.VariableLFO",
+          "modulationColor": -16711737,
+          "parameters": {
+            "label": "LFO 6",
+            "running": true,
+            "trigger": false,
+            "loop": true,
+            "wave": 0,
+            "period": 1000.0,
+            "skew": 0.0,
+            "shape": 0.0,
+            "phase": 0.0,
+            "exp": 0.0
+          }
+        },
+        {
+          "id": 1699,
+          "class": "heronarts.lx.modulator.MultiStageEnvelope",
+          "modulationColor": -16720641,
+          "parameters": {
+            "label": "Env 1",
+            "running": false,
+            "trigger": false,
+            "loop": false,
+            "period": 1000.0
+          },
+          "stages": [
+            {
+              "basis": 0.0,
+              "value": 0.0,
+              "shape": 1.0
+            },
+            {
+              "basis": 1.0,
+              "value": 1.0,
+              "shape": 1.0
+            }
+          ]
+        },
+        {
+          "id": 1700,
+          "class": "heronarts.lx.modulator.MultiStageEnvelope",
+          "modulationColor": -16318720,
+          "parameters": {
+            "label": "Env 2",
+            "running": false,
+            "trigger": false,
+            "loop": false,
+            "period": 1000.0
+          },
+          "stages": [
+            {
+              "basis": 0.0,
+              "value": 0.0,
+              "shape": 1.0
+            },
+            {
+              "basis": 1.0,
+              "value": 1.0,
+              "shape": 1.0
+            }
+          ]
+        },
+        {
+          "id": 1701,
+          "class": "heronarts.lx.audio.BandGate",
+          "modulationColor": -23808,
+          "parameters": {
+            "label": "Beat 1",
+            "running": true,
+            "trigger": false,
+            "gain": 0.0,
+            "range": 36.0,
+            "attack": 10.0,
+            "release": 100.0,
+            "slope": 4.5,
+            "threshold": 0.8,
+            "floor": 0.75,
+            "decay": 400.0,
+            "minFreq": 60.0,
+            "maxFreq": 120.0,
+            "gate": false,
+            "average": 0.0,
+            "tap": false
+          }
+        },
+        {
+          "id": 1702,
+          "class": "heronarts.lx.audio.BandGate",
+          "modulationColor": -1792,
+          "parameters": {
+            "label": "Beat 2",
+            "running": true,
+            "trigger": false,
+            "gain": 0.0,
+            "range": 36.0,
+            "attack": 10.0,
+            "release": 100.0,
+            "slope": 4.5,
+            "threshold": 0.8,
+            "floor": 0.75,
+            "decay": 400.0,
+            "minFreq": 60.0,
+            "maxFreq": 120.0,
+            "gate": false,
+            "average": 0.0,
+            "tap": false
+          }
+        },
+        {
+          "id": 1703,
+          "class": "heronarts.lx.modulator.MacroKnobs",
+          "modulationColor": -11599617,
+          "parameters": {
+            "label": "Macro 1",
+            "running": true,
+            "trigger": false,
+            "macro1": 0.0,
+            "macro2": 0.0,
+            "macro3": 0.0,
+            "macro4": 0.0,
+            "macro5": 0.0
+          }
+        },
+        {
+          "id": 1704,
+          "class": "heronarts.lx.modulator.VariableLFO",
+          "modulationColor": -65531,
+          "parameters": {
+            "label": "LFO 7",
+            "running": true,
+            "trigger": false,
+            "loop": true,
+            "wave": 0,
+            "period": 1000.0,
+            "skew": 0.0,
+            "shape": 0.0,
+            "phase": 0.0,
+            "exp": 0.0
           }
         }
       ],
@@ -730,12 +979,24 @@
       "modulatorExpanded": {
         "1102": true,
         "1108": true,
-        "1110": true
+        "1110": true,
+        "1693": true,
+        "1694": true,
+        "1695": true,
+        "1696": true,
+        "1697": true,
+        "1698": true,
+        "1699": true,
+        "1700": true,
+        "1701": true,
+        "1702": true,
+        "1703": true,
+        "1704": true
       },
       "preview": {
         "radius": 8130.175684493453,
-        "theta": 3.6569999999999925,
-        "phi": -0.020283326148983722
+        "theta": 4.454999999999996,
+        "phi": 0.3727166738510166
       }
     }
   }
