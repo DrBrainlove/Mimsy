@@ -1,10 +1,10 @@
 /** Pattern Ideas.
  *
- * Tracers extend from a single node along all bars of dodecahedron.
- * Split and recombine at each node but keep tracing greater graph distance.
- * Color bars/points as a function of graph distance. Sparkle tetrahedra bars
- * whenever getting to a point connecting back to first node (i.e. at graph
- * distance 3). Color Tetrahedra by lerp from node colors.
+ * - Tracers extend from a single node along all bars of dodecahedron.
+ * - Split and recombine at each node but keep tracing greater graph distance.
+ * - Color bars/points as a function of graph distance. Sparkle tetrahedra bars
+ *   whenever getting to a point connecting back to first node (i.e. at graph
+ *   distance 3). Color Tetrahedra by lerp from node colors.
  *
  */
 
@@ -867,8 +867,11 @@ public class EEGBandwidthParticlesPattern extends GraphPattern {
 
 
 /** ************************************************************
- *  Make the dodecahedron twinkle
- *  The L tetrahedra spin and rotate
+ *  Make the dodecahedron twinkle and the L tetrahedra spin
+ *
+ * TODO:
+ *   - better colors for the tetrahedra, NO MORE RAINBOWS
+ *   - play with adding the R tetrahedra, in a complimentary color?
  *
  * @author Mike Pesavento
  *
@@ -881,7 +884,6 @@ public class DDTwinkle extends GraphPattern {
     new BoundedParameter("HUE", 30, 0, 360);
   private final BoundedParameter hueWidth =
     new BoundedParameter("HUEW", 40, 0, 360);
-
   private final BoundedParameter fadeRate =
     new BoundedParameter("DDFADE", 1.75, 0.001, 5.0);
 
@@ -919,32 +921,20 @@ public class DDTwinkle extends GraphPattern {
     // Dodecahedron
     updateDodecahedron(deltaMs);
 
-    // ----
-    // Tetrahedra, L
-    //first, fade ALL tetrahedra, not just our current one
+    // tetrahedra
+    // first, fade ALL tetrahedra, not just our current one
     float tetraFadeVal = 1.0 - (colorFadeTetra.getValuef() * (float)deltaMs / 1000.0);
     fade(model.getLayer(TL).points, tetraFadeVal);
-
+    // add the L
     GraphModel tetra;
     tetra = model.getLayer(TL).getLayer(tetraIndex);
-    // Track elapsed periods
-    tetraPeriod = 1000.0 / rotateSpeed.getValuef();
-    tetraElapsed += (float)deltaMs;
-    // switch to a new tetrahedra if it's time
-    if (tetraElapsed >= tetraPeriod) {
-      tetraElapsed = 0.0;
-      tetraIndex = (tetraIndex + (int)Math.floor(rand.nextFloat() * 4.0)) % 5;
-      //tetraIndex = (tetraIndex + 1) % 5;
+    updateTetrahedra(tetra, deltaMs);
 
-    }
-    float attkVal = (tetraElapsed/tetraPeriod) / colorAttkTetra.getValuef() * 100.0;
-    this.colorTetraBars(tetra, attkVal);
 
   }
 
   private void colorTetraBars(GraphModel tetra, float attackVal) {
     // Given a tetrahedra, color all the bars in some clever way
-    Bar bar0 = tetra.bars[0];
     float hue = 0.0;
     float sat = 100.0;
     float brt = min(100.0, attackVal);
@@ -958,7 +948,24 @@ public class DDTwinkle extends GraphPattern {
     }
   }
 
+    private void updateTetrahedra(GraphModel tetra, double deltaMs) {
+    // Tetrahedra, Left only
+    // Track elapsed periods
+    tetraPeriod = 1000.0 / rotateSpeed.getValuef();
+    tetraElapsed += (float)deltaMs;
+    // switch to a new tetrahedra if it's time
+    if (tetraElapsed >= tetraPeriod) {
+      tetraElapsed = 0.0;
+      tetraIndex = (tetraIndex + (int)Math.floor(rand.nextFloat() * 4.0)) % 5;
+      //tetraIndex = (tetraIndex + 1) % 5;
+
+    }
+    float attkVal = (tetraElapsed/tetraPeriod) / colorAttkTetra.getValuef() * 100.0;
+    this.colorTetraBars(tetra, attkVal);
+  }
+
   private void updateDodecahedron(double deltaMs){
+    // make the dodecahedron twinkle
     GraphModel dodecahedron;
     dodecahedron = model.getLayer(DD);
     float ddFade = 1.0 - (fadeRate.getValuef() * (float)deltaMs / 1000.0);
@@ -1208,3 +1215,250 @@ public class TimeToLivePattern extends PixiePattern {
     this.pixies.removeAll(removePixies);
   }
 }
+
+
+/* ************************************************************
+ *  Fire on the bars, enclosed by the dodecahedron
+ *
+ * Fire stolen shamelessly from FastLED examples
+ * https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
+ *
+ * TODO:
+ *
+ * @author Mike Pesavento
+ *
+ */
+public class FireBars extends GraphPattern {
+
+  // We need to create a map of int values for each pixel to
+  // the associated color for that value.
+  //
+  // The easy option is to just create a full replica of the entire color array
+  // using the "temperature" as the color value.
+  // The indexes in this array map 1:1 with the pixel indexes in colors[]
+  protected int heat_values[] = new int[colors.length];
+
+  protected LutPalette heat_lut;
+
+  //entropy
+  Random rand = new Random();
+
+  private final BoundedParameter rate =
+      new BoundedParameter("RATE", 20.0, 1.0, 80.0);
+  private final BoundedParameter hue =
+    new BoundedParameter("HUE", 200, 0, 360);
+  private final BoundedParameter hueWidth =
+    new BoundedParameter("HUEW", 40, 0, 360);
+  private final BoundedParameter fadeRate =
+    new BoundedParameter("DDFADE", 1.75, 0.001, 5.0);
+
+  // COOLING: How much does the air cool as it rises?
+  // Less cooling = taller flames.  More cooling = shorter flames.
+  // Default 55, suggested range 20-100
+  private final BoundedParameter cooling =
+      new BoundedParameter("COOL", 55, 20, 200);
+
+  // SPARKING: What chance (out of 255) is there that a new spark will be lit?
+  // Higher chance = more roaring fire.  Lower chance = more flickery fire.
+  // Default 120, suggested range 50-200.
+  private final BoundedParameter sparking =
+      new BoundedParameter("SPARK", 120, 50, 200);
+
+
+  public FireBars(LX lx) {
+    super(lx);
+    heat_lut = new LutPalette("heat");
+    addParameter(rate);
+    addParameter(hue);
+    addParameter(hueWidth);
+    addParameter(fadeRate);
+
+    addParameter(cooling);
+    addParameter(sparking);
+
+
+    // set all heat values to something hot, and then it cools
+    for(int i=0; i<heat_values.length; i++)
+      heat_values[i] = 230;
+
+  }
+
+
+  public void run(double deltaMs) {
+    // Dodecahedron
+    updateDodecahedron(deltaMs);
+
+    // fire on the tetras
+    GraphModel tetraL = model.getLayer(TL);
+    GraphModel tetraR = model.getLayer(TR);
+
+    for (Bar bar : tetraL.bars) {
+      // first, update the heat_values array based on old values
+      fire(bar, heat_values);
+      // then update the colors array for the given bar
+      int bar_range[] = bar.getPointRange();
+      for(int i=bar_range[0]; i<bar_range[1]; i++) {
+        // System.out.format("[%d]=%3d,%3d\n", i, heat_values[i], scale8(heat_values[i], 240));
+        int color_ix = scale8(heat_values[i], 240);
+        int clr = heat_lut.get_color(color_ix);
+        // System.out.format("[%d]=%d, clr=0x%08X\n", i, color_ix, clr);
+        colors[i] = clr;
+      }
+    }
+    // for (Bar bar : tetraR.bars) {
+    //   fire(bar, heat_values);
+    // }
+
+  }
+
+  // Fire2012 by Mark Kriegsman, July 2012
+  // FastLED library
+  // https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
+  // as part of "Five Elements" shown here: http://youtu.be/knWiGsmgycY
+  ////
+  // This basic one-dimensional 'fire' simulation works roughly as follows:
+  // There's a underlying array of 'heat' cells, that model the temperature
+  // at each point along the line.  Every cycle through the simulation,
+  // four steps are performed:
+  //  1) All cells cool down a little bit, losing heat to the air
+  //  2) The heat from each cell drifts 'up' and diffuses a little
+  //  3) Sometimes randomly new 'sparks' of heat are added at the bottom
+  //  4) The heat from each cell is rendered as a color into the leds array
+  //     The heat-to-color mapping uses a black-body radiation approximation.
+  //
+  // Temperature is in arbitrary units from 0 (cold black) to 255 (white hot).
+  //
+  // This simulation scales it self a bit depending on NUM_LEDS; it should look
+  // "OK" on anywhere from 20 to 100 LEDs without too much tweaking.
+
+  void fire(Bar bar, int[] heat_values) {
+    //MJP NOTES:
+    // To get this to work without creating a second buffer of all colors,
+    // i should create a reversible map for index to color int, and from colorint
+    // to index. This would allow me to read the color from colors[bar.points.index]
+    // and remember where we were for the next frame.
+    // The colors[] array is ints, so should be able to map directly if we use a hash table
+
+    int num_leds = bar.points.length;
+    // Array of temperature readings at each simulation cell
+    int heat[] = new int[num_leds];
+    boolean reverse_direction = is_reversed(bar);
+
+    // quick fills for testing
+    //    for(LXPoint p : bar.points) {
+    //       colors[p.index] = heat_lut.get_color(heat_values[p.index]);
+    //       colors[p.index] = heat_lut.get_color((int)heat_value_knob.getValue());
+    //       System.out.format("heat lut [%d] = 0x%08X = 0x%08X\n", p.index, heat_lut[160], colors[p.index]);
+    //    }
+
+    // load our local copy of the points to keep everything in line
+    int ix = 0;  // index of the current pixel on our bar, local frame
+    for(LXPoint p : bar.points) {
+      // TODO: check which orientation of the bar is the bottom!
+      if(reverse_direction) {
+        heat[(num_leds-1) - ix++] = heat_values[p.index];
+      }
+      else {
+        heat[ix++] = heat_values[p.index];
+      }
+    }
+
+    // Step 1.  Cool down every cell a little
+    for( int i = 0; i < num_leds; i++) {
+      int cool = randInt(0, (int)((cooling.getValue() * 10) / num_leds) + 2);
+      heat[i] = subtract_floor(heat[i], cool);
+    }
+
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for( int k= num_leds - 1; k >= 2; k--) {
+      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+    }
+
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if( rand.nextInt(255) < (int)sparking.getValue() ) {
+      int y = randInt(0, 7);  // start spark this distance from bottom
+      heat[y] = add_ceil(heat[y], randInt(160,255));
+    }
+
+    // update pattern values array
+    ix = 0;  // index of the current pixel on our bar, local frame
+    for(LXPoint p : bar.points) {
+      if(reverse_direction) {
+        heat_values[p.index] = heat[(num_leds-1) - ix++];
+      }
+      else {
+        heat_values[p.index] = heat[ix++];
+      }
+      // heat_values[p.index] = heat[ix++];
+      // System.out.format("[%d]=%d\n", p.index, heat_values[p.index]);
+    }
+
+  }
+
+  // return true if highest point index is lowest z
+  private boolean is_reversed(Bar bar) {
+    boolean high_index_is_low_z = false;
+    if (bar.points[0].z < bar.points[bar.points.length-1].z)
+      high_index_is_low_z = true;
+    return high_index_is_low_z;
+  }
+
+  private void updateDodecahedron(double deltaMs){
+    // make the dodecahedron twinkle
+    GraphModel dodecahedron;
+    dodecahedron = model.getLayer(DD);
+    float ddFade = 1.0 - (fadeRate.getValuef() * (float)deltaMs / 1000.0);
+    fade(dodecahedron.points, ddFade);
+
+    ArrayList<LXPoint> twinklePoints = dodecahedron
+        .getRandomPoints((int)rate.getValuef());
+    for(LXPoint p: twinklePoints) {
+      int hueShift = rand.nextInt((int)hueWidth.getValuef());
+      float curHue = (hue.getValuef() + hueShift - hueShift / 2) % 360;
+      colors[p.index] = lx.hsb(curHue, 100, 100);
+    }
+  }
+
+
+  /**
+   * Scale the target value from [0, 255] to [0, target_max] range
+   */
+  private int scale8(int value, int target_max) {
+    return (int)(target_max * value) / 255;
+  }
+
+  private int subtract_floor(int a, int b) {
+    return Math.max(0, a - b);
+  }
+
+  private int add_ceil(int a, int b) {
+    return Math.min(a+b, 255);
+  }
+
+  /**
+   * Returns a pseudo-random number between min and max, inclusive.
+   * The difference between min and max can be at most
+   * <code>Integer.MAX_VALUE - 1</code>.
+   *
+   * @param min Minimum value
+   * @param max Maximum value.  Must be greater than min.
+   * @return Integer between min and max, inclusive.
+   * @see java.util.Random#nextInt(int)
+   */
+  public int randInt(int min, int max) {
+    // Better would be:
+    // import java.util.concurrent.ThreadLocalRandom;
+    // nextInt is normally exclusive of the top value,
+    // so add 1 to make it inclusive
+    //int randomNum = ThreadLocalRandom.current().nextInt(min, max + 1);
+
+
+    // nextInt is normally exclusive of the top value,
+    // so add 1 to make it inclusive
+    int randomNum = rand.nextInt((max - min) + 1) + min;
+
+    return randomNum;
+  }
+
+}
+

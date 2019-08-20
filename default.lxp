@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "timestamp": 1565682842797,
+  "timestamp": 1566288240237,
   "engine": {
     "id": 1,
     "class": "heronarts.lx.LXEngine",
@@ -30,7 +30,7 @@
         "label": "",
         "cue": false,
         "hueMode": 1,
-        "color/hue": 204.31600752272584,
+        "color/hue": 204.2353057861328,
         "color/brightness": 100.0,
         "color/saturation": 100.0,
         "color": -16738049,
@@ -70,7 +70,7 @@
         },
         "effects": [],
         "clips": [],
-        "patternIndex": 11,
+        "patternIndex": 13,
         "patterns": [
           {
             "id": 28,
@@ -294,10 +294,40 @@
             "modulationColor": -3473153,
             "parameters": {
               "label": "TimeToLive",
-              "Spin": 2.2000000402331352,
-              "Attk": 1.0599999986588955,
-              "Fade": 2.4999999664723873
-            }
+              "NUM": 100.0,
+              "FADE": 0.8999999761581421,
+              "SPD": 50.0,
+              "BRIGHT": 1.0,
+              "HUE": 210.0,
+              "SAT": 63.0,
+              "TTL": 8.0
+            },
+            "modulation": {
+              "modulators": [],
+              "modulations": [],
+              "triggers": []
+            },
+            "autoCycleEnabled": true
+          },
+          {
+            "id": 1866,
+            "class": "Mimsy$FireBars",
+            "modulationColor": -31232,
+            "parameters": {
+              "label": "FireBars",
+              "RATE": 20.0,
+              "HUE": 30.0,
+              "HUEW": 40.0,
+              "DDFADE": 1.75,
+              "COOL": 105.39999887347221,
+              "SPARK": 119.00000181049109
+            },
+            "modulation": {
+              "modulators": [],
+              "modulations": [],
+              "triggers": []
+            },
+            "autoCycleEnabled": true
           }
         ]
       },
@@ -471,13 +501,13 @@
           "Band-3": 0.0,
           "Band-4": 0.0,
           "Band-5": 0.0,
-          "Band-6": 0.04208951060923516,
-          "Band-7": 0.04707439997706997,
-          "Band-8": 0.0,
-          "Band-9": 0.0,
-          "Band-10": 0.0,
-          "Band-11": 0.0,
-          "Band-12": 0.0,
+          "Band-6": 0.0,
+          "Band-7": 0.02029672220589207,
+          "Band-8": 0.09472956333024485,
+          "Band-9": 0.10238703606885124,
+          "Band-10": 0.1108319044345576,
+          "Band-11": 0.007795763822535662,
+          "Band-12": 0.07842931425950572,
           "Band-13": 0.0,
           "Band-14": 0.0,
           "Band-15": 0.0,
@@ -541,7 +571,7 @@
             "minFreq": 0.0,
             "maxFreq": 143.0764923095703,
             "gate": false,
-            "average": 0.3233386347087467,
+            "average": 0.1735045342053615,
             "tap": false
           }
         },
@@ -564,7 +594,7 @@
             "minFreq": 120.0,
             "maxFreq": 1776.185791015625,
             "gate": false,
-            "average": 0.10840135522165384,
+            "average": 0.2590887658862351,
             "tap": false
           }
         },
@@ -587,7 +617,7 @@
             "minFreq": 120.0,
             "maxFreq": 22050.0,
             "gate": false,
-            "average": 0.40671980741592706,
+            "average": 0.6330535851903301,
             "tap": false
           }
         },
@@ -1006,8 +1036,8 @@
       },
       "preview": {
         "radius": 8130.175684493453,
-        "theta": 4.454999999999996,
-        "phi": 0.3727166738510166
+        "theta": 6.282000000000023,
+        "phi": -1.4137166738510132
       }
     }
   }
