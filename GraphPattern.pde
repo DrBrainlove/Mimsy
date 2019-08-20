@@ -1336,8 +1336,15 @@ public class FireBars extends GraphPattern {
     // fire on the tetras
     GraphModel tetraL = model.getLayer(TL);
     GraphModel tetraR = model.getLayer(TR);
+    updateTetrahedra(tetraL);
+    updateTetrahedra(tetraR);
 
-    for (Bar bar : tetraL.bars) {
+
+  }
+
+
+  private void updateTetrahedra(GraphModel tetra) {
+    for (Bar bar : tetra.bars) {
       // first, update the heat_values array based on old values
       fire(bar, heat_values);
       // then update the colors array for the given bar
@@ -1350,9 +1357,6 @@ public class FireBars extends GraphPattern {
         colors[i] = clr;
       }
     }
-    // for (Bar bar : tetraR.bars) {
-    //   fire(bar, heat_values);
-    // }
 
   }
 
@@ -1384,9 +1388,8 @@ public class FireBars extends GraphPattern {
     // and remember where we were for the next frame.
     // The colors[] array is ints, so should be able to map directly if we use a hash table
 
-    int num_leds = bar.points.length;
     // Array of temperature readings at each simulation cell
-    int heat[] = new int[num_leds];
+    int heat_bar[] = new int[bar.points.length];
     boolean reverse_direction = is_reversed(bar);
 
     // quick fills for testing
@@ -1397,47 +1400,60 @@ public class FireBars extends GraphPattern {
     //    }
 
     // load our local copy of the points to keep everything in line
+    load_bar_values(bar, heat_bar, heat_values, reverse_direction);
+
+    // ignite, diffuse, and cool
+    fire_cycle(heat_bar, bar.points.length);
+
+    // update pattern values array
+    update_model_values(bar, heat_bar, heat_values, reverse_direction);
+
+  }
+
+  private void load_bar_values(Bar bar, int[] heat_bar, int[] heat_values, boolean reverse_direction) {
     int ix = 0;  // index of the current pixel on our bar, local frame
     for(LXPoint p : bar.points) {
       // TODO: check which orientation of the bar is the bottom!
       if(reverse_direction) {
-        heat[(num_leds-1) - ix++] = heat_values[p.index];
+        heat_bar[(bar.points.length-1) - ix++] = heat_values[p.index];
       }
       else {
-        heat[ix++] = heat_values[p.index];
+        heat_bar[ix++] = heat_values[p.index];
       }
     }
+  }
 
+  private void fire_cycle(int[] heat_bar, int num_leds) {
     // Step 1.  Cool down every cell a little
     for( int i = 0; i < num_leds; i++) {
       int cool = randInt(0, (int)((cooling * 10) / num_leds) + 2);
-      heat[i] = subtract_floor(heat[i], cool);
+      heat_bar[i] = subtract_floor(heat_bar[i], cool);
     }
 
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
     for( int k= num_leds - 1; k >= 2; k--) {
-      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+      heat_bar[k] = (heat_bar[k - 1] + heat_bar[k - 2] + heat_bar[k - 2] ) / 3;
     }
 
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     if( rand.nextInt(255) < sparking ) {
       int y = randInt(0, 7);  // start spark this distance from bottom
-      heat[y] = add_ceil(heat[y], randInt(160,255));
+      heat_bar[y] = add_ceil(heat_bar[y], randInt(160,255));
     }
+  }
 
-    // update pattern values array
-    ix = 0;  // index of the current pixel on our bar, local frame
+  private void update_model_values(
+        Bar bar, int[] heat_bar, int[] heat_values, boolean reverse_direction) {
+    int ix = 0;  // index of the current pixel on our bar, local frame
     for(LXPoint p : bar.points) {
       if(reverse_direction) {
-        heat_values[p.index] = heat[(num_leds-1) - ix++];
+        heat_values[p.index] = heat_bar[(bar.points.length-1) - ix++];
       }
       else {
-        heat_values[p.index] = heat[ix++];
+        heat_values[p.index] = heat_bar[ix++];
       }
-      // heat_values[p.index] = heat[ix++];
       // System.out.format("[%d]=%d\n", p.index, heat_values[p.index]);
     }
-
   }
 
   // return true if highest point index is lowest z
