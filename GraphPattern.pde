@@ -1274,6 +1274,9 @@ public class FireBars extends GraphPattern {
   private final CompoundParameter cmap_param = new CompoundParameter("CMAP", 0, 2);
   private int cmap_ix = 0;
 
+  // invert the gravity
+  private final BooleanParameter invert_param = new BooleanParameter("INVRT");
+
 
   public FireBars(LX lx) {
     super(lx);
@@ -1286,6 +1289,7 @@ public class FireBars extends GraphPattern {
     addParameter(cooling_param);
     addParameter(sparking_param);
     addParameter(cmap_param);
+    addParameter(invert_param);
 
 
     // set all heat values to something hot, and then it cools
@@ -1461,7 +1465,8 @@ public class FireBars extends GraphPattern {
     boolean high_index_is_low_z = false;
     if (bar.points[0].z < bar.points[bar.points.length-1].z)
       high_index_is_low_z = true;
-    return high_index_is_low_z;
+    // the XOR will flip whichever orientation we wanted
+    return high_index_is_low_z ^ invert_param.getValueb();
   }
 
   private void updateDodecahedron(double deltaMs){
