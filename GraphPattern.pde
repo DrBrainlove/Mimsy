@@ -519,20 +519,20 @@ public class TetraSymmetryFace extends GraphPattern {
 
 public class PixiePattern extends GraphPattern {
   // How many pixies are zipping around.
-  private final BoundedParameter numPixies =
+  protected final BoundedParameter numPixies =
       new BoundedParameter("NUM", 100, 0, 1000);
   // How fast each pixie moves, in pixels per second.
-  private final BoundedParameter speed =
+  protected final BoundedParameter speed =
       new BoundedParameter("SPD", 50.0, 10.0, 150.0);
   // How long the trails persist. (Decay factor for the trails, each frame.)
   // XXX really should be scaled by frame time
-  private final BoundedParameter fade =
+  protected final BoundedParameter fade =
       new BoundedParameter("FADE", 0.9, 0.8, .97);
   // Brightness adjustment factor.
-  private final BoundedParameter brightness =
+  protected final BoundedParameter brightness =
       new BoundedParameter("BRIGHT", 1.0, .25, 2.0);
-  private final BoundedParameter colorHue = new BoundedParameter("HUE", 210, 0, 359.0);
-  private final BoundedParameter colorSat = new BoundedParameter("SAT", 63.0, 0.0, 100.0);
+  protected final BoundedParameter colorHue = new BoundedParameter("HUE", 210, 0, 359.0);
+  protected final BoundedParameter colorSat = new BoundedParameter("SAT", 63.0, 0.0, 100.0);
 
 
   class Pixie {
@@ -974,3 +974,237 @@ public class DDTwinkle extends GraphPattern {
   }
 }
 
+
+/************************************************************** TTL PATTERN
+ * Points of light colliding with each other within a finite TTL.
+ * Upon collision, points change color and spawn a new point.
+ * TTL is a registered parameter mutable in the UI.
+ * Inspired by the pixie pattern.
+ *
+ * More ideas for later:
+ * - Rather than becoming solid instantly, post-collision bars
+ *   could have their coloring radiated from the point of collision.
+ * - Collisions near/at the ends of a bar aren't that fun to watch;
+ *   perhaps collisions at the ends of a bar should be ignored.
+ * - Subsections of the bar could be rendered final when a collision
+ *   occurs, rather than rendering the entire bar final.
+ *
+ * @author Matt Quinn
+ ************************************************************************* **/
+
+public class TimeToLivePattern extends PixiePattern {
+
+  private final BoundedParameter ttlParam =
+      new BoundedParameter("TTL", 8.0, 1.0, 20.0);
+
+  // All living pixies. We want O(1) removal.
+  private Set<TtlPixie> pixies = new HashSet<TtlPixie>();
+
+  // Each *directed* bar mapped to the pixies that are currently on it.
+  private final Map<Bar, Set> barPixies = new HashMap<Bar, Set>();
+
+  // Each *directed* bar that has had a collision occur on it.
+  // We want O(1) lookup to know whether or not a bar should be checked for collisions.
+  private final Set<Bar> solidBars = new HashSet<Bar>();
+
+  // Each *directed* bar that hasn't yet had a collision on it.
+  // We sacrifice O(1) removal for O(1) random access
+  private final List<Bar> blankBars = new ArrayList<Bar>();
+
+  private final Random random = new Random();
+
+  private float anglemod = 0;
+
+  class TtlPixie extends PixiePattern.Pixie {
+    public boolean isCollided;
+    public int ttl;
+    public TtlPixie(Node fromNode, Node toNode) {
+      super();
+      this.fromNode = fromNode;
+      this.toNode = toNode;
+      this.ttl = (int)ttlParam.getValuef();
+      this.isCollided = false;
+    }
+    public void updateColor() {
+      this.kolor = lx.hsb(colorHue.getValuef(), colorSat.getValuef(),
+        (isCollided ? 255 : 100));
+    }
+  }
+
+  public TimeToLivePattern(LX lx) {
+    super(lx);
+    addParameter(ttlParam);
+
+    // All bars are initially blank and have zero pixies.
+    // Iteration here is over bars directed in a single direction;
+    // we call reversed() to also keep references to oppposing bars.
+    for (int i = 0; i < model.bars.length; i++) {
+      Bar bar = model.bars[i];
+      this.blankBars.add(bar);
+      this.blankBars.add(bar.reversed());
+      this.barPixies.put(bar, new HashSet<TtlPixie>());
+      this.barPixies.put(bar.reversed(), new HashSet<TtlPixie>());
+    }
+
+    // Let loose a single pixie.
+    addNewPixieToSet(this.pixies);
+  }
+
+  /**
+   * Accepts a set and potentially adds a new pixie to the collection.
+   */
+  protected void addNewPixieToSet(Collection<TtlPixie> set) {
+    if (blankBars.size() == 0)
+      return;
+
+    // Get a random bar from the set of blank (non-collided) ones.
+    Bar bar = blankBars.get(random.nextInt(blankBars.size()));
+    TtlPixie newPixie = new TtlPixie(bar.node1, bar.node2);
+    set.add(newPixie);
+    this.barPixies.get(bar).add(newPixie);
+  }
+
+  public void run(double deltaMs) {
+
+    float fadeRate = 0;
+    float speedRate = 0;
+    float calm;
+    float attention;
+
+    if (museEnabled) {
+      // NOTE: this usually uses getMellow() and getConcentration(), but
+      // recent versions of muse-io look like they don't catch those values any longer :(
+      // calm = muse.getTheta()/muse.getAlpha();
+      // attention = muse.getBeta()/muse.getAlpha();
+      //  // Placeholders, use these for now?
+      calm = muse.getAlpha();
+      attention = muse.getGamma();
+      fadeRate = map(calm, 0.0, 1.0, (float)fade.range.min, (float)fade.range.max);
+      speedRate = map(attention, 0.0, 1.0, (float)speed.range.min, (float)speed.range.max);
+    }
+    else {
+      fadeRate = fade.getValuef();
+      speedRate = speed.getValuef();
+    }
+
+    // Scale brightness for all points
+    for (LXPoint p : model.points) {
+     colors[p.index] =
+         LXColor.scaleBrightness(colors[p.index], fadeRate);
+    }
+
+    // Ensure all living pixies have the latest color
+    for (TtlPixie p : this.pixies) {
+      p.updateColor();
+    }
+
+    // Ensure all solid bars have the latest color.
+    anglemod=anglemod+1;
+    if (anglemod > 360)
+      anglemod = anglemod % 360;
+    for (Bar bar : this.solidBars) {
+      for (LXPoint point: bar.points) {
+        colors[point.index]=lx.hsb(((atan(point.x/point.z))*360/PI+anglemod),80,50);
+      }
+    }
+
+    // To avoid concurrent modification exceptions while iterating
+    // over living pixies, we accumulate pixies to add/remove in these lists.
+    List<TtlPixie> newPixies = new ArrayList<TtlPixie>();
+    List<TtlPixie> removePixies = new ArrayList<TtlPixie>();
+
+    ALL_PIXIES_ITER:
+    for (TtlPixie p : this.pixies) {
+
+      Bar thisBar = model.getBar(p.fromNode, p.toNode);
+
+      // If a pixie's TTL hits 0, remove it.
+      if (p.ttl <= 0) {
+        removePixies.add(p);
+        barPixies.get(thisBar).remove(p);
+        continue;
+      }
+
+      double drawOffset = p.offset;
+      p.offset += (deltaMs / 1000.0) * speedRate;
+
+      // Check the bar in the opposite direction for
+      // pixies that are colliding with this pixie. Note that we
+      // only check if for collisions if a collision *hasn't*
+      // already occurred on this bar.
+      Bar oppositeBar = model.getBar(p.toNode, p.fromNode);
+      if (!solidBars.contains(thisBar)) {
+        for (TtlPixie oncomingPixie : (Set<TtlPixie>)barPixies.get(oppositeBar)) {
+          // Note the shenanery here: offset 0 in one direction is
+          // opposite offset 0 in the other, so one of them needs to be flipped
+          // before we can compare their "physical" locations.
+          if (Math.abs((int)oncomingPixie.offset - (thisBar.points.length - (int)p.offset)) <= 2) {
+            p.isCollided = true;
+            oncomingPixie.isCollided = true;
+
+            solidBars.add(thisBar);
+            solidBars.add(oppositeBar);
+            blankBars.remove(thisBar);
+            blankBars.remove(oppositeBar);
+
+            // When two pixies collide, spawn a new one.
+            addNewPixieToSet(newPixies);
+
+            continue ALL_PIXIES_ITER;
+          }
+        }
+      }
+
+      while (drawOffset < p.offset) {
+        LXPoint[] points = thisBar.points;
+
+        int index = (int)Math.floor(drawOffset);
+
+        // If the pixie has reached the end of a bar,
+        // send it down a connected bar (allowed to reverse).
+        if (index >= points.length) {
+          Node oldFromNode = p.fromNode;
+          p.fromNode = p.toNode;
+          p.toNode = model.getRandomNode(p.fromNode);
+          drawOffset -= points.length;
+          p.offset -= points.length;
+
+          Bar newBar = model.getBar(p.fromNode, p.toNode);
+          barPixies.get(thisBar).remove(p);
+          barPixies.get(newBar).add(p);
+          // Pixie's TTL is decremented once for each bar traversal.
+          p.ttl -= 1;
+
+          // When a pixie reaches the end of a bar,
+          // potentially spawn a new pixie at a random node.
+          int choice = random.nextInt(Math.max(2, pixies.size() / 2));
+          if (choice == 0) {
+             addNewPixieToSet(newPixies);
+          }
+
+          continue;
+        }
+
+        // How long, notionally, was the pixie at this pixel during
+        // this frame? If we are moving at 100 pixels per second, say,
+        // then timeHereMs will add up to 1/100th of a second for each
+        // pixel in the pixie's path, possibly accumulated over
+        // multiple frames.
+        double end = Math.min(p.offset, Math.ceil(drawOffset + .000000001));
+        double timeHereMs = (end - drawOffset) /
+            speedRate * 1000.0;
+
+        LXPoint here = points[(int)Math.floor(drawOffset)];
+        addColor(here.index, LXColor.scaleBrightness(p.kolor,
+                                         (float)timeHereMs / 1000.0
+                                         * speedRate
+                                         * brightness.getValuef()));
+        drawOffset = end;
+      }
+    }
+
+    // Process queued up additions/removals now that iteration is complete.
+    this.pixies.addAll(newPixies);
+    this.pixies.removeAll(removePixies);
+  }
+}
