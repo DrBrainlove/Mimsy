@@ -1223,6 +1223,10 @@ public class TimeToLivePattern extends PixiePattern {
  * Fire stolen shamelessly from FastLED examples
  * https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
  *
+ * Muse enabled!
+ *  - calming the mind (high theta/alpha) increases the cooling parameter
+ *  - increasing attention (high gamma/alpha) increases the sparking parameter
+ *
  * TODO:
  *
  * @author Mike Pesavento
@@ -1255,14 +1259,20 @@ public class FireBars extends GraphPattern {
   // COOLING: How much does the air cool as it rises?
   // Less cooling = taller flames.  More cooling = shorter flames.
   // Default 55, suggested range 20-100
-  private final BoundedParameter cooling =
+  private final BoundedParameter cooling_param =
       new BoundedParameter("COOL", 55, 20, 200);
+  private int cooling = (int)cooling_param.getValue();
 
   // SPARKING: What chance (out of 255) is there that a new spark will be lit?
   // Higher chance = more roaring fire.  Lower chance = more flickery fire.
   // Default 120, suggested range 50-200.
-  private final BoundedParameter sparking =
+  private final BoundedParameter sparking_param =
       new BoundedParameter("SPARK", 120, 50, 200);
+  private int sparking = (int)sparking_param.getValue();
+
+  // which colormap, heat or ice?
+  private final CompoundParameter cmap_param = new CompoundParameter("CMAP", 0, 2);
+  private int cmap_ix = 0;
 
 
   public FireBars(LX lx) {
@@ -1273,8 +1283,9 @@ public class FireBars extends GraphPattern {
     addParameter(hueWidth);
     addParameter(fadeRate);
 
-    addParameter(cooling);
-    addParameter(sparking);
+    addParameter(cooling_param);
+    addParameter(sparking_param);
+    addParameter(cmap_param);
 
 
     // set all heat values to something hot, and then it cools
@@ -1285,6 +1296,40 @@ public class FireBars extends GraphPattern {
 
 
   public void run(double deltaMs) {
+    // add muse interaction
+    float calm;
+    float attention;
+    if (museEnabled) {
+      // NOTE: this usually uses getMellow() and getConcentration(), but
+      // recent versions of muse-io look like they don't catch those values any longer :(
+      calm = muse.getTheta()/muse.getAlpha();
+      attention = muse.getBeta()/muse.getAlpha();
+      //  // Placeholders, use these for now?
+      // calm = muse.getAlpha();
+      // attention = muse.getGamma();
+      cooling = (int)map(calm,
+        0.0, 1.0,
+        (float)cooling_param.range.min, (float)cooling_param.range.max);
+      sparking = (int)map(attention,
+        0.0, 1.0,
+        (float)sparking_param.range.min, (float)sparking_param.range.max);
+    }
+    else {
+      cooling = (int)cooling_param.getValue();
+      sparking = (int)sparking_param.getValue();
+    }
+
+    // check which colormap
+    int new_cmap_ix = (int)Math.floor(cmap_param.getValue());
+    if ( new_cmap_ix != cmap_ix) {
+      switch(new_cmap_ix) {
+        case 0: heat_lut = new LutPalette("heat"); break;
+        case 1: heat_lut = new LutPalette("ice"); break;
+        }
+      cmap_ix = new_cmap_ix;
+    }
+
+
     // Dodecahedron
     updateDodecahedron(deltaMs);
 
@@ -1365,7 +1410,7 @@ public class FireBars extends GraphPattern {
 
     // Step 1.  Cool down every cell a little
     for( int i = 0; i < num_leds; i++) {
-      int cool = randInt(0, (int)((cooling.getValue() * 10) / num_leds) + 2);
+      int cool = randInt(0, (int)((cooling * 10) / num_leds) + 2);
       heat[i] = subtract_floor(heat[i], cool);
     }
 
@@ -1375,7 +1420,7 @@ public class FireBars extends GraphPattern {
     }
 
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-    if( rand.nextInt(255) < (int)sparking.getValue() ) {
+    if( rand.nextInt(255) < sparking ) {
       int y = randInt(0, 7);  // start spark this distance from bottom
       heat[y] = add_ceil(heat[y], randInt(160,255));
     }

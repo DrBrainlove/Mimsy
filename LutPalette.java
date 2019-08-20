@@ -38,11 +38,18 @@ public class LutPalette {
                 System.out.format("Loading 'heat' lut\n");
                 base_colors = heat_base_colors;
                 break;
+            case "ice":
+                System.out.format("Loading 'heat' lut\n");
+                base_colors = blue_heat_base_colors;
+                break;
             default:
                 System.out.format("No known palette: %s", lut_name);
+                base_colors = heat_base_colors;
                 break;
         }
         // load the lut from the target base_colors
+        System.out.format("Loading '%s' lut\n", lut_name);
+
         load_lut(base_colors);
         length = 256;
     }
